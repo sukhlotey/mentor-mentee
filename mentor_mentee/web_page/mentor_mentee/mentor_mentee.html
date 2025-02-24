@@ -1,0 +1,23 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="container mt-4">
+  <h2 class="text-center">Mentor Mentee System</h2>
+  <div class="row mt-4">
+    <div class="col-md-4">
+      <h4>Instructors</h4>
+      <ul id="instructors-list" class="list-group">
+        {% for instructor in instructors %}
+        <li class="list-group-item instructor-item" data-instructor="{{ instructor.name }}" style="cursor: pointer;">
+          {{ instructor.instructor_name }}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="col-md-8">
+      <h4>Student Groups</h4>
+      <div id="groups-list"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
