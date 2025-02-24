@@ -15,11 +15,11 @@
 bench new-site mentor-mentee.localhost
 ```
 ```bash
-cd apps
+cd frappe-bench/apps
 ```
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/mentor-mentee.git
+git clone https://github.com/sukhlotey/mentor-mentee.git
 ```
 ```bash
 cd ..
