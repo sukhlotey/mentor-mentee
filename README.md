@@ -5,12 +5,15 @@
 * Python 3.10+
 * Node.js & npm (for frontend assets)
 * Redis (for caching & queue management)
-* MariaDB 10.3+ / MySQL
-* Frappe Framework (v14 recommended)
+* MariaDB
+* Frappe Framework 
 * Bench CLI
+* Education app
+* Erpnext app
 
 #### Steps
 
+Create new site if not have existing site
 ```bash
 bench new-site mentor-mentee.localhost
 ```
@@ -20,6 +23,9 @@ cd frappe-bench/apps
 
 ```bash
 git clone https://github.com/sukhlotey/mentor-mentee.git
+or
+bench get-app mentor_mentee --branch main https://github.com/sukhlotey/mentor-mentee.git
+
 ```
 ```bash
 cd ..
@@ -37,6 +43,6 @@ bench --site mentor-mentee.localhost install-app education
 bench --site mentor-mentee.localhost install-app mentor-mentee
 ```
 ```
+bench build
 bench start
 ```
-
