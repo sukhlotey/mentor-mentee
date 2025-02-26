@@ -1,0 +1,22 @@
+{% extends "templates/base.html" %}
+
+{% block title %}User List 11{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center mb-4">List of Users 11</h2>
+    <div class="row">
+        {% for user in users %}
+        <div class="col-md-4">
+            <div class="card mb-3 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ user.full_name }}</h5>
+                    <p class="card-text"><strong>Email:</strong> {{ user.email }}</p>
+                    <p class="card-text"><strong>Role:</strong> {{ user.role }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
