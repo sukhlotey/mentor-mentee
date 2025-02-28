@@ -1,0 +1,62 @@
+{% extends "templates/base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Mentor Mentee System</h2>
+    
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <h4>Instructors</h4>
+            <ul id="instructors-list" class="list-group">
+                {% for instructor in instructors %}
+                <li class="list-group-item instructor-item" data-instructor="{{ instructor.name }}">
+                    {{ instructor.name }}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        
+        <div class="col-md-8">
+            <h4>Student Groups</h4>
+            <div id="groups-list">
+                <p>Select an instructor to view student groups.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const instructorItems = document.querySelectorAll(".instructor-item");
+    const groupsList = document.getElementById("groups-list");
+
+    instructorItems.forEach(item => {
+        item.addEventListener("click", function () {
+            const instructorName = this.dataset.instructor;
+            groupsList.innerHTML = "<p>Loading student groups...</p>";
+
+            const instructorGroups = {{ instructor_groups | tojson }};
+
+            if (instructorGroups[instructorName] && instructorGroups[instructorName].length > 0) {
+                groupsList.innerHTML = "";
+                instructorGroups[instructorName].forEach(group => {
+                    let students = group.students.length > 0 ? group.students.join(", ") : "No students assigned.";
+                    groupsList.innerHTML += `
+                        <div class="card mt-3">
+                            <div class="card-header bg-primary text-white">${group.student_group_name}</div>
+                            <div class="card-body">
+                                <p><strong>Students:</strong> ${students}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                groupsList.innerHTML = "<p>No student groups assigned to this instructor.</p>";
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
