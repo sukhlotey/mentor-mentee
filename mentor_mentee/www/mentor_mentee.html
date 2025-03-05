@@ -3,9 +3,13 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-4" >
     <h2 class="text-center">Mentor Mentee System</h2>
-    
+
+    <input type="text" id="searchInput" class="form-control mt-3"
+           placeholder="Search by Instructor or Student Name..."
+           value="{{ search_query | default('') }}">
+
     <div class="row mt-4">
         <div class="col-md-4">
             <h4>Instructors</h4>
@@ -17,33 +21,67 @@
                 {% endfor %}
             </ul>
         </div>
-        
-        <div class="col-md-8">
-            <h4>Student Groups</h4>
-            <div id="groups-list">
-                <p>Select an instructor to view student groups.</p>
+
+        <div class="col-md-4">
+            <h4>Students</h4>
+            <ul id="students-list" class="list-group">
+                {% for student in students %}
+                <li class="list-group-item student-item" data-student="{{ student.name }}">
+                    {{ student.student_name }}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="col-md-4">
+            <h4>Details</h4>
+            <div id="details-list">
+                <p>Select an instructor or student to view details.</p>
             </div>
         </div>
     </div>
-</div>
 
+    {% if not search_query and total_pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if current_page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ current_page - 1 }}">Previous</a>
+                </li>
+            {% endif %}
+
+            {% for p in range(1, total_pages + 1) %}
+                <li class="page-item {% if p == current_page %}active{% endif %}">
+                    <a class="page-link" href="?page={{ p }}">{{ p }}</a>
+                </li>
+            {% endfor %}
+
+            {% if current_page < total_pages %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ current_page + 1 }}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const instructorItems = document.querySelectorAll(".instructor-item");
-    const groupsList = document.getElementById("groups-list");
+    const detailsList = document.getElementById("details-list");
 
-    instructorItems.forEach(item => {
+    const instructorGroups = JSON.parse('{{ instructor_groups | tojson | safe }}');
+    const studentInstructors = JSON.parse('{{ student_instructors | tojson | safe }}');
+
+    document.querySelectorAll(".instructor-item").forEach(item => {
         item.addEventListener("click", function () {
             const instructorName = this.dataset.instructor;
-            groupsList.innerHTML = "<p>Loading student groups...</p>";
-
-            const instructorGroups = {{ instructor_groups | tojson }};
+            detailsList.innerHTML = "<p>Loading student groups...</p>";
 
             if (instructorGroups[instructorName] && instructorGroups[instructorName].length > 0) {
-                groupsList.innerHTML = "";
+                detailsList.innerHTML = "";
                 instructorGroups[instructorName].forEach(group => {
                     let students = group.students.length > 0 ? group.students.join(", ") : "No students assigned.";
-                    groupsList.innerHTML += `
+                    detailsList.innerHTML += `
                         <div class="card mt-3">
                             <div class="card-header bg-primary text-white">${group.student_group_name}</div>
                             <div class="card-body">
@@ -53,10 +91,47 @@ document.addEventListener("DOMContentLoaded", function () {
                     `;
                 });
             } else {
-                groupsList.innerHTML = "<p>No student groups assigned to this instructor.</p>";
+                detailsList.innerHTML = "<p>No student groups assigned to this instructor.</p>";
             }
         });
     });
+
+    document.querySelectorAll(".student-item").forEach(item => {
+        item.addEventListener("click", function () {
+            const studentName = this.dataset.student;
+            detailsList.innerHTML = "<p>Loading assigned instructors...</p>";
+
+            if (studentInstructors[studentName] && studentInstructors[studentName].length > 0) {
+                detailsList.innerHTML = `<h4>Assigned Instructors</h4>`;
+                studentInstructors[studentName].forEach(instructor => {
+                    detailsList.innerHTML += `
+                        <div class="card mt-3">
+                            <div class="card-header bg-success text-white">${instructor}</div>
+                        </div>
+                    `;
+                });
+            } else {
+                detailsList.innerHTML = "<p>No instructor assigned to this student.</p>";
+            }
+        });
+    });
+
+
+    document.getElementById("searchInput").addEventListener("input", function() {
+        let searchValue = this.value.trim();
+        let url = new URL(window.location.href);
+        
+        if (searchValue) {
+            url.searchParams.set("search", searchValue);
+        } else {
+            url.searchParams.delete("search");
+        }
+        
+        url.searchParams.set("page", 1);
+        window.location.href = url.toString();
+    });
+
+
 });
 </script>
 {% endblock %}
