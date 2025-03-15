@@ -1,0 +1,67 @@
+{% extends "templates/web.html" %}
+{% block title %}HOD ToDo Management{% endblock %}
+{% block page_content %}
+<div class="container mt-5">
+    <h1 class="mb-4">HOD ToDo Management</h1>
+    {% if not frappe.session.user == "Guest" and "HOD" in user_roles %}
+        {% if error_message %}
+            <div class="alert alert-danger" role="alert">
+                {{ error_message }}
+            </div>
+        {% endif %}
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Assign a New ToDo</h5>
+                <form method="POST" action="/hod_todo">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <div class="form-group">
+                        <label for="instructor">Select Instructor</label>
+                        <select name="instructor" id="instructor" class="form-control" required>
+                            <option value="">-- Select an Instructor --</option>
+                            {% for instructor in instructors %}
+                                <option value="{{ instructor.name }}">{{ instructor.employee_name }} ({{ instructor.user_id }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">ToDo Description</label>
+                        <textarea name="description" id="description" class="form-control" rows="4" required placeholder="Enter task details..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Assign ToDo</button>
+                </form>
+            </div>
+        </div>
+        <h2 class="mb-3">Assigned ToDos</h2>
+        {% if todos %}
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Instructor</th>
+                            <th>User ID</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for todo in todos %}
+                            <tr>
+                                <td>{{ todo.assigned_to_name }}</td>
+                                <td>{{ todo.assigned_to_user }}</td>
+                                <td>{{ todo.description }}</td>
+                                <td>{{ todo.status }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">No ToDos assigned yet.</p>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-warning" role="alert">
+            You do not have permission to access this page.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
