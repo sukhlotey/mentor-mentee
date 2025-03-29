@@ -6,8 +6,13 @@
 <div class="container mt-4" >
     <h2 class="text-center">Mentor Mentee System</h2>
 
+
+    <input type="text" id="searchInput" class="form-control form-control-lg p-6 mt-3 w-75 mx-auto"
+           placeholder="Search by name..."
+
     <input type="text" id="searchInput" class="form-control mt-3"
            placeholder="Search by Instructor or Student Name..."
+
            value="{{ search_query | default('') }}">
 
     <div class="row mt-4">
@@ -41,6 +46,67 @@
         </div>
     </div>
 
+
+    <nav class="mt-4" id="pagination-section" {% if search_query or total_pages <= 1 %}style="display: none;"{% endif %}>
+        <ul class="pagination justify-content-center">
+            <!-- Previous Button -->
+            {% if current_page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ current_page - 1 }}{% if search_query %}&search={{ search_query }}{% endif %}">Previous</a>
+                </li>
+            {% endif %}
+
+            <!-- Page Numbers with Ellipses -->
+            {% set max_buttons = 7 %} <!-- Total buttons to show (including first, last, and ellipses) -->
+            {% set side_buttons = 2 %} <!-- Pages to show on either side of current -->
+
+            {% if total_pages <= max_buttons %}
+                <!-- If total pages are few, show all -->
+                {% for p in range(1, total_pages + 1) %}
+                    <li class="page-item {% if p == current_page %}active{% endif %}">
+                        <a class="page-link" href="?page={{ p }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ p }}</a>
+                    </li>
+                {% endfor %}
+            {% else %}
+                <!-- First Page -->
+                <li class="page-item {% if current_page == 1 %}active{% endif %}">
+                    <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}">1</a>
+                </li>
+
+                <!-- Ellipsis before current range if needed -->
+                {% if current_page > side_buttons + 2 %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+
+                <!-- Pages around current page -->
+                {% set start_page = [current_page - side_buttons, 2]|max %}
+                {% set end_page = [current_page + side_buttons, total_pages - 1]|min %}
+                {% for p in range(start_page, end_page + 1) %}
+                    <li class="page-item {% if p == current_page %}active{% endif %}">
+                        <a class="page-link" href="?page={{ p }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ p }}</a>
+                    </li>
+                {% endfor %}
+
+                <!-- Ellipsis after current range if needed -->
+                {% if current_page < total_pages - side_buttons - 1 %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+
+                <!-- Last Page -->
+                <li class="page-item {% if current_page == total_pages %}active{% endif %}">
+                    <a class="page-link" href="?page={{ total_pages }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ total_pages }}</a>
+                </li>
+            {% endif %}
+
+            <!-- Next Button -->
+            {% if current_page < total_pages %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ current_page + 1 }}{% if search_query %}&search={{ search_query }}{% endif %}">Next</a>
+
     {% if not search_query and total_pages > 1 %}
     <nav class="mt-4">
         <ul class="pagination justify-content-center">
@@ -59,10 +125,129 @@
             {% if current_page < total_pages %}
                 <li class="page-item">
                     <a class="page-link" href="?page={{ current_page + 1 }}">Next</a>
+
                 </li>
             {% endif %}
         </ul>
     </nav>
+
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    let currentSearchQuery = "{{ search_query | default('') }}";
+    let currentPage = {{ current_page }};
+    let instructorGroups = {{ instructor_groups | tojson | safe }};
+    let studentInstructors = {{ student_instructors | tojson | safe }};
+    let detailsList = document.getElementById("details-list");
+    let searchInput = document.getElementById("searchInput");
+    let instructorsList = document.getElementById("instructors-list");
+    let studentsList = document.getElementById("students-list");
+    let paginationSection = document.getElementById("pagination-section");
+
+    // Function to attach event listeners for details
+    function attachEventListeners() {
+        document.querySelectorAll(".instructor-item").forEach(item => {
+            item.addEventListener("click", function () {
+                const instructorName = this.dataset.instructor;
+                detailsList.innerHTML = "<p>Loading student groups...</p>";
+
+                if (instructorGroups[instructorName] && instructorGroups[instructorName].length > 0) {
+                    detailsList.innerHTML = "";
+                    instructorGroups[instructorName].forEach(group => {
+                        let students = group.students.length > 0 ? group.students.join(", ") : "No students assigned.";
+                        detailsList.innerHTML += `
+                            <div class="card mt-3">
+                                <div class="card-header bg-info text-white">${group.student_group_name}</div>
+                                <div class="card-body">
+                                    <p><strong>Students:</strong> ${students}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    detailsList.innerHTML = "<p>No student groups assigned to this instructor.</p>";
+                }
+            });
+        });
+
+        document.querySelectorAll(".student-item").forEach(item => {
+            item.addEventListener("click", function () {
+                const studentName = this.dataset.student;
+                detailsList.innerHTML = "<p>Loading assigned instructors...</p>";
+
+                if (studentInstructors[studentName] && studentInstructors[studentName].length > 0) {
+                    detailsList.innerHTML = `<h4>Assigned Instructors</h4>`;
+                    studentInstructors[studentName].forEach(instructor => {
+                        detailsList.innerHTML += `
+                            <div class="card mt-3">
+                                <div class="p-4 rounded bg-info text-white">${instructor}</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    detailsList.innerHTML = "<p>No instructor assigned to this student.</p>";
+                }
+            });
+        });
+    }
+
+    function updatePage(searchQuery, page) {
+        frappe.call({
+            method: "mentor_mentee.www.mentor_mentee.search_mentor_mentee",
+            args: {
+                search_query: searchQuery,
+                page: page
+            },
+            callback: function(response) {
+                let data = response.message;
+
+                instructorsList.innerHTML = "";
+                data.instructors.forEach(function(instructor) {
+                    let li = document.createElement("li");
+                    li.classList.add("list-group-item", "instructor-item");
+                    li.dataset.instructor = instructor.name;
+                    li.textContent = instructor.name;
+                    instructorsList.appendChild(li);
+                });
+
+                studentsList.innerHTML = "";
+                data.students.forEach(function(student) {
+                    let li = document.createElement("li");
+                    li.classList.add("list-group-item", "student-item");
+                    li.dataset.student = student.name;
+                    li.textContent = student.student_name;
+                    studentsList.appendChild(li);
+                });
+
+                instructorGroups = data.instructor_groups;
+                studentInstructors = data.student_instructors;
+                currentSearchQuery = data.search_query;
+                currentPage = data.current_page;
+
+                detailsList.innerHTML = "<p>Select an instructor or student to view details.</p>";
+
+                attachEventListeners();
+
+                if (searchQuery === "" && data.total_pages > 1) {
+                    paginationSection.style.display = "block";
+                } else {
+                    paginationSection.style.display = "none";
+                }
+            }
+        });
+    }
+
+    attachEventListeners();
+
+    let searchTimeout;
+    searchInput.addEventListener("input", function() {
+        let searchValue = this.value.trim().toLowerCase();
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+            updatePage(searchValue, 1);
+        }, 500);
+    });
+
     {% endif %}
 </div>
 <script>
@@ -130,6 +315,7 @@ document.addEventListener("DOMContentLoaded", function () {
         url.searchParams.set("page", 1);
         window.location.href = url.toString();
     });
+
 
 
 });
