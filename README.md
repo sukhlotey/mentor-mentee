@@ -10,6 +10,7 @@
 * Bench CLI
 * Education app
 * Erpnext app
+* HRMS app
 
 #### Steps
 
@@ -30,16 +31,18 @@ bench get-app mentor_mentee --branch main https://github.com/sukhlotey/mentor-me
 ```bash
 cd ..
 ```
-#### This app contains education and erpnext app
+#### This app contains education, erpnext and hrms app
 
 ```bash
 
 bench get-app erpnext 
 bench get-app education
+bench get-app hrms
 
 # Install them on the site
 bench --site mentor-mentee.localhost install-app erpnext
 bench --site mentor-mentee.localhost install-app education
+bench --site mentor-mentee.localhost install-app hrms
 bench --site mentor-mentee.localhost install-app mentor-mentee
 ```
 ```
