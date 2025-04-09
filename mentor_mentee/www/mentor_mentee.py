@@ -4,7 +4,6 @@ def get_context(context):
     search_query = frappe.form_dict.get("search", "").strip().lower()
     page = int(frappe.form_dict.get("page", 1))
 
-    
     items_per_page = 10
     offset = (page - 1) * items_per_page
 

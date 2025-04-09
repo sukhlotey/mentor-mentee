@@ -10,9 +10,14 @@
     <input type="text" id="searchInput" class="form-control form-control-lg p-6 mt-3 w-75 mx-auto"
            placeholder="Search by name..."
 
+
+    <input type="text" id="searchInput" class="form-control form-control-lg p-6 mt-3 w-75 mx-auto"
+           placeholder="Search by name..."
+
     <input type="text" id="searchInput" class="form-control mt-3"
            placeholder="Search by Instructor or Student Name..."
 
+           
            value="{{ search_query | default('') }}">
 
     <div class="row mt-4">
@@ -49,16 +54,15 @@
 
     <nav class="mt-4" id="pagination-section" {% if search_query or total_pages <= 1 %}style="display: none;"{% endif %}>
         <ul class="pagination justify-content-center">
-            <!-- Previous Button -->
             {% if current_page > 1 %}
                 <li class="page-item">
                     <a class="page-link" href="?page={{ current_page - 1 }}{% if search_query %}&search={{ search_query }}{% endif %}">Previous</a>
                 </li>
             {% endif %}
 
-            <!-- Page Numbers with Ellipses -->
-            {% set max_buttons = 7 %} <!-- Total buttons to show (including first, last, and ellipses) -->
-            {% set side_buttons = 2 %} <!-- Pages to show on either side of current -->
+            
+            {% set max_buttons = 7 %}
+            {% set side_buttons = 2 %} 
 
             {% if total_pages <= max_buttons %}
                 <!-- If total pages are few, show all -->
@@ -68,19 +72,17 @@
                     </li>
                 {% endfor %}
             {% else %}
-                <!-- First Page -->
+
                 <li class="page-item {% if current_page == 1 %}active{% endif %}">
                     <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}">1</a>
                 </li>
 
-                <!-- Ellipsis before current range if needed -->
                 {% if current_page > side_buttons + 2 %}
                     <li class="page-item disabled">
                         <span class="page-link">...</span>
                     </li>
                 {% endif %}
 
-                <!-- Pages around current page -->
                 {% set start_page = [current_page - side_buttons, 2]|max %}
                 {% set end_page = [current_page + side_buttons, total_pages - 1]|min %}
                 {% for p in range(start_page, end_page + 1) %}
@@ -89,23 +91,21 @@
                     </li>
                 {% endfor %}
 
-                <!-- Ellipsis after current range if needed -->
                 {% if current_page < total_pages - side_buttons - 1 %}
                     <li class="page-item disabled">
                         <span class="page-link">...</span>
                     </li>
                 {% endif %}
 
-                <!-- Last Page -->
                 <li class="page-item {% if current_page == total_pages %}active{% endif %}">
                     <a class="page-link" href="?page={{ total_pages }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ total_pages }}</a>
                 </li>
             {% endif %}
 
-            <!-- Next Button -->
             {% if current_page < total_pages %}
                 <li class="page-item">
                     <a class="page-link" href="?page={{ current_page + 1 }}{% if search_query %}&search={{ search_query }}{% endif %}">Next</a>
+
 
     {% if not search_query and total_pages > 1 %}
     <nav class="mt-4">
@@ -248,6 +248,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 500);
     });
 
+
     {% endif %}
 </div>
 <script>
@@ -315,8 +316,6 @@ document.addEventListener("DOMContentLoaded", function () {
         url.searchParams.set("page", 1);
         window.location.href = url.toString();
     });
-
-
 
 });
 </script>

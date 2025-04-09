@@ -22,6 +22,14 @@
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">Assign ToDo to HOD</h5>
+                    <form method="POST" action="/todo" id="assign-todo-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="assignees" id="assignees" value="">
+                        <div class="form-group">
+                            <label>Selected Assignees</label>
+                            <div id="selected-assignees" class="form-control" style="min-height: 38px; background-color: #f8f9fa;">None selected</div>
+                            <button type="button" class="btn btn-info mt-2" data-toggle="modal" data-target="#assigneeModal">Select Assignees</button>
+
                     <form method="POST" action="/todo">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                         <div class="form-group">
@@ -32,6 +40,7 @@
                                     <option value="{{ hod.user_id }}">{{ hod.employee_name }} ({{ hod.user_id }}) - {{ hod.department }}</option>
                                 {% endfor %}
                             </select>
+
                         </div>
                         <div class="form-group">
                             <label for="description">ToDo Description</label>
@@ -49,6 +58,56 @@
                             <label for="due_date">Due Date (Optional)</label>
                             <input type="date" name="due_date" id="due_date" class="form-control" placeholder="YYYY-MM-DD">
                         </div>
+
+                        <div class="form-group">
+                            <label for="priority">Priority</label>
+                            <select name="priority" id="priority" class="form-control">
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-info">Assign</button>
+                    </form>
+                </div>
+            </div>
+            <div class="modal fade" id="assigneeModal" tabindex="-1" role="dialog" aria-labelledby="assigneeModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="assigneeModalLabel">Select Assignees</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">×</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group mb-3">
+                                <input type="text" id="assignee-search" class="form-control" placeholder="Search assignees...">
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="select-all-assignees">
+                                <label class="form-check-label" for="select-all-assignees">Select All</label>
+                            </div>
+                            <hr>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input assignee-checkbox" id="assignee-{{ frappe.session.user }}" value="{{ frappe.session.user }}">
+                                <label class="form-check-label" for="assignee-{{ frappe.session.user }}">Myself ({{ frappe.session.user }})</label>
+                            </div>
+                            {% for hod in hods %}
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input assignee-checkbox" id="assignee-{{ hod.user_id }}" value="{{ hod.user_id }}">
+                                    <label class="form-check-label" for="assignee-{{ hod.user_id }}">{{ hod.employee_name }} ({{ hod.user_id }}) - {{ hod.department }}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" id="confirm-assignees">Confirm</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
                         <button type="submit" class="btn btn-primary">Assign</button>
                     </form>
                 </div>
@@ -57,6 +116,14 @@
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">Assign ToDo to Instructor</h5>
+                    <form method="POST" action="/todo" id="assign-todo-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="assignees" id="assignees" value="">
+                        <div class="form-group">
+                            <label>Selected Assignees</label>
+                            <div id="selected-assignees" class="form-control" style="min-height: 38px; background-color: #f8f9fa;">None selected</div>
+                            <button type="button" class="btn btn-info mt-2" data-toggle="modal" data-target="#assigneeModal">Select Assignees</button>
+
                     <form method="POST" action="/todo">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                         <div class="form-group">
@@ -84,6 +151,55 @@
                             <label for="due_date">Due Date (Optional)</label>
                             <input type="date" name="due_date" id="due_date" class="form-control" placeholder="YYYY-MM-DD">
                         </div>
+                        <div class="form-group">
+                            <label for="priority">Priority</label>
+                            <select name="priority" id="priority" class="form-control">
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-info">Assign</button>
+                    </form>
+                </div>
+            </div>
+            <div class="modal fade" id="assigneeModal" tabindex="-1" role="dialog" aria-labelledby="assigneeModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="assigneeModalLabel">Select Assignees</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">×</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group mb-3">
+                                <input type="text" id="assignee-search" class="form-control" placeholder="Search assignees...">
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="select-all-assignees">
+                                <label class="form-check-label" for="select-all-assignees">Select All</label>
+                            </div>
+                            <hr>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input assignee-checkbox" id="assignee-{{ frappe.session.user }}" value="{{ frappe.session.user }}">
+                                <label class="form-check-label" for="assignee-{{ frappe.session.user }}">Myself ({{ frappe.session.user }})</label>
+                            </div>
+                            {% for instructor in instructors %}
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input assignee-checkbox" id="assignee-{{ instructor.user_id }}" value="{{ instructor.user_id }}">
+                                    <label class="form-check-label" for="assignee-{{ instructor.user_id }}">{{ instructor.employee_name }} ({{ instructor.user_id }})</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" id="confirm-assignees">Confirm</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
                         <button type="submit" class="btn btn-primary">Assign</button>
                     </form>
                 </div>
@@ -92,6 +208,14 @@
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">Assign ToDo to Student</h5>
+                    <form method="POST" action="/todo" id="assign-todo-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="assignees" id="assignees" value="">
+                        <div class="form-group">
+                            <label>Selected Assignees</label>
+                            <div id="selected-assignees" class="form-control" style="min-height: 38px; background-color: #f8f9fa;">None selected</div>
+                            <button type="button" class="btn btn-info mt-2" data-toggle="modal" data-target="#assigneeModal">Select Assignees</button>
+
                     <form method="POST" action="/todo">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                         <div class="form-group">
@@ -119,6 +243,184 @@
                             <label for="due_date">Due Date (Optional)</label>
                             <input type="date" name="due_date" id="due_date" class="form-control" placeholder="YYYY-MM-DD">
                         </div>
+                        <div class="form-group">
+                            <label for="priority">Priority</label>
+                            <select name="priority" id="priority" class="form-control">
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-info">Assign</button>
+                    </form>
+                </div>
+            </div>
+            <!-- Assignee Selection Modal -->
+            <div class="modal fade" id="assigneeModal" tabindex="-1" role="dialog" aria-labelledby="assigneeModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="assigneeModalLabel">Select Assignees</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">×</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group mb-3">
+                                <input type="text" id="assignee-search" class="form-control" placeholder="Search assignees...">
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="select-all-assignees">
+                                <label class="form-check-label" for="select-all-assignees">Select All</label>
+                            </div>
+                            <hr>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input assignee-checkbox" id="assignee-{{ frappe.session.user }}" value="{{ frappe.session.user }}">
+                                <label class="form-check-label" for="assignee-{{ frappe.session.user }}">Myself ({{ frappe.session.user }})</label>
+                            </div>
+                            {% for student in students %}
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input assignee-checkbox" id="assignee-{{ student.name }}" value="{{ student.name }}">
+                                    <label class="form-check-label" for="assignee-{{ student.name }}">{{ student.full_name }} ({{ student.name }})</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" id="confirm-assignees">Confirm</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% elif is_student %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Create Personal ToDo</h5>
+                    <form method="POST" action="/todo" id="student-todo-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="assignees" id="student-assignees" value="">
+                        <div class="form-group">
+                            <label>Assignee</label>
+                            <div id="student-selected-assignees" class="form-control" style="min-height: 38px; background-color: #f8f9fa;">None selected</div>
+                            <button type="button" class="btn btn-info mt-2" data-toggle="modal" data-target="#studentAssigneeModal">Select Assignee</button>
+                        </div>
+                        <div class="form-group">
+                            <label for="student_description">ToDo Description</label>
+                            <textarea name="description" id="student_description" class="form-control" rows="4" required placeholder="Enter task details..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="student_status">Status</label>
+                            <select name="status" id="student_status" class="form-control">
+                                <option value="Open" selected>Open</option>
+                                <option value="Closed">Closed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="student_due_date">Due Date (Optional)</label>
+                            <input type="date" name="due_date" id="student_due_date" class="form-control" placeholder="YYYY-MM-DD">
+                        </div>
+                        <div class="form-group">
+                            <label for="student_priority">Priority</label>
+                            <select name="priority" id="student_priority" class="form-control">
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-info">Create</button>
+                    </form>
+                </div>
+            </div>
+            <!-- Student Assignee Selection Modal -->
+            <div class="modal fade" id="studentAssigneeModal" tabindex="-1" role="dialog" aria-labelledby="studentAssigneeModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="studentAssigneeModalLabel">Select Assignee</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">×</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input student-assignee-checkbox" id="student-assignee-{{ frappe.session.user }}" value="{{ frappe.session.user }}">
+                                <label class="form-check-label" for="student-assignee-{{ frappe.session.user }}">Myself ({{ frappe.session.user }})</label>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" id="student-confirm-assignees">Confirm</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        <h2 class="mb-3">{{ "Assigned ToDos" if is_principal or (is_hod and not show_principal_todos and not show_personal_todos) or (is_instructor and not show_hod_todos and not show_personal_todos) or (is_student and not show_personal_todos) else "My ToDos" }}</h2>
+        <div class="mb-3 d-flex align-items-center flex-wrap">
+            {% if is_principal %}
+                <div class="dropdown mr-2 mb-2">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="viewDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        {% if show_personal_todos %}
+                            Personal ToDos
+                        {% else %}
+                            Assigned ToDos
+                        {% endif %}
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="viewDropdown">
+                        <a class="dropdown-item" href="/todo?show_personal_todos=0{% if search %}&search={{ search }}{% endif %}{% if sort_order %}&sort_order={{ sort_order }}{% endif %}">Assigned ToDos</a>
+                        <a class="dropdown-item" href="/todo?show_personal_todos=1{% if search %}&search={{ search }}{% endif %}{% if sort_order %}&sort_order={{ sort_order }}{% endif %}">Personal ToDos</a>
+                    </div>
+                </div>
+            {% elif is_hod %}
+                <div class="dropdown mr-2 mb-2">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="viewDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        {% if show_principal_todos %}
+                            ToDos from Principal
+                        {% elif show_personal_todos %}
+                            Personal ToDos
+                        {% else %}
+                            Assigned ToDos
+                        {% endif %}
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="viewDropdown">
+                        <a class="dropdown-item" href="/todo?show_principal_todos=0&show_personal_todos=0{% if search %}&search={{ search }}{% endif %}{% if sort_order %}&sort_order={{ sort_order }}{% endif %}">Assigned ToDos</a>
+                        <a class="dropdown-item" href="/todo?show_principal_todos=1&show_personal_todos=0{% if search %}&search={{ search }}{% endif %}{% if sort_order %}&sort_order={{ sort_order }}{% endif %}">ToDos from Principal</a>
+                        <a class="dropdown-item" href="/todo?show_principal_todos=0&show_personal_todos=1{% if search %}&search={{ search }}{% endif %}{% if sort_order %}&sort_order={{ sort_order }}{% endif %}">Personal ToDos</a>
+                    </div>
+                </div>
+            {% elif is_instructor %}
+                <div class="dropdown mr-2 mb-2">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="viewDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        {% if show_hod_todos %}
+                            ToDos from HOD
+                        {% elif show_personal_todos %}
+                            Personal ToDos
+                        {% else %}
+                            Assigned ToDos
+                        {% endif %}
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="viewDropdown">
+                        <a class="dropdown-item" href="/todo?show_hod_todos=0&show_personal_todos=0{% if search %}&search={{ search }}{% endif %}{% if sort_order %}&sort_order={{ sort_order }}{% endif %}">Assigned ToDos</a>
+                        <a class="dropdown-item" href="/todo?show_hod_todos=1&show_personal_todos=0{% if search %}&search={{ search }}{% endif %}{% if sort_order %}&sort_order={{ sort_order }}{% endif %}">ToDos from HOD</a>
+                        <a class="dropdown-item" href="/todo?show_hod_todos=0&show_personal_todos=1{% if search %}&search={{ search }}{% endif %}{% if sort_order %}&sort_order={{ sort_order }}{% endif %}">Personal ToDos</a>
+                    </div>
+                </div>
+            {% elif is_student %}
+                <div class="dropdown mr-2 mb-2">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="viewDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        {% if show_personal_todos %}
+                            Personal ToDos
+                        {% else %}
+                            Assigned ToDos
+                        {% endif %}
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="viewDropdown">
+                        <a class="dropdown-item" href="/todo?show_personal_todos=0{% if search %}&search={{ search }}{% endif %}{% if sort_order %}&sort_order={{ sort_order }}{% endif %}">ToDos from Instructor</a>
+                        <a class="dropdown-item" href="/todo?show_personal_todos=1{% if search %}&search={{ search }}{% endif %}{% if sort_order %}&sort_order={{ sort_order }}{% endif %}">Personal ToDos</a>
+                    </div>
+                </div>
+
                         <button type="submit" class="btn btn-primary">Assign</button>
                     </form>
                 </div>
@@ -147,6 +449,8 @@
                     <option value="100" {{ 'selected' if page_length == 100 }}>100</option>
                 </select>
             </div>
+            {% if is_principal or (is_hod and not show_principal_todos) or (is_instructor and not show_hod_todos) or (is_student and show_personal_todos) %}
+
             {% if is_principal or (is_hod and not show_principal_todos) or (is_instructor and not show_hod_todos) %}
                 <div class="mr-2 mb-2">
                     <select id="bulk-action" class="form-control">
@@ -164,6 +468,8 @@
             <table class="table table-striped table-bordered" id="todo-table">
                 <thead class="thead-dark">
                     <tr>
+                        {% if is_principal or (is_hod and not show_principal_todos) or (is_instructor and not show_hod_todos) or (is_student and show_personal_todos) %}
+
                         {% if is_principal or (is_hod and not show_principal_todos) or (is_instructor and not show_hod_todos) %}
                             <th><input type="checkbox" id="select-all"></th>
                         {% endif %}
@@ -174,6 +480,9 @@
                         <th><a href="#" class="sort-link" data-field="custom_response">Response</a></th>
                         <th><a href="#" class="sort-link" data-field="creation">Date & Time</a></th>
                         <th><a href="#" class="sort-link" data-field="date">Due Date</a></th>
+                        <th><a href="#" class="sort-link" data-field="priority">Priority</a></th>
+                        {% if is_principal or (is_hod and not show_principal_todos) or (is_instructor and not show_hod_todos) or (is_student and show_personal_todos) %}
+
                         {% if is_principal or (is_hod and not show_principal_todos) or (is_instructor and not show_hod_todos) %}
                             <th>Actions</th>
                         {% endif %}
@@ -209,6 +518,8 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Value</label>
+                                    <input type="text" class="form-check-input filter-value" placeholder="Enter value">
+
                                     <input type="text" class="form-control filter-value" placeholder="Enter value">
                                 </div>
                             </div>
@@ -268,6 +579,9 @@
     const csrfToken = "{{ csrf_token }}";
     const showPrincipalTodos = {{ "true" if show_principal_todos else "false" }};
     const showHodTodos = {{ "true" if show_hod_todos else "false" }};
+
+    const showPersonalTodos = {{ "true" if show_personal_todos else "false" }};
+
     const hods = {{ hods | tojson | safe if is_principal else "[]" }};
     const instructors = {{ instructors | tojson | safe if is_hod else "[]" }};
     const students = {{ students | tojson | safe if is_instructor else "[]" }};
@@ -297,6 +611,114 @@
                 $("#query-success-alert").alert("close");
             }, 5000);
         }
+
+
+        const assigneeModal = document.getElementById("assigneeModal");
+        if (assigneeModal) {
+            const selectAllCheckbox = document.getElementById("select-all-assignees");
+            const assigneeCheckboxes = document.querySelectorAll(".assignee-checkbox");
+            const confirmButton = document.getElementById("confirm-assignees");
+            const assigneesInput = document.getElementById("assignees");
+            const selectedAssigneesDiv = document.getElementById("selected-assignees");
+            const searchInput = document.getElementById("assignee-search");
+
+            selectAllCheckbox.addEventListener("change", function() {
+                assigneeCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+            });
+
+            assigneeCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener("change", function() {
+                    const allChecked = Array.from(assigneeCheckboxes).every(cb => cb.checked);
+                    selectAllCheckbox.checked = allChecked;
+                });
+            });
+
+            searchInput.addEventListener("input", function() {
+                const searchTerm = this.value.toLowerCase();
+                assigneeCheckboxes.forEach(checkbox => {
+                    const label = checkbox.nextElementSibling.textContent.toLowerCase();
+                    const checkboxContainer = checkbox.parentElement;
+                    if (label.includes(searchTerm) || searchTerm === "") {
+                        checkboxContainer.style.display = "";
+                    } else {
+                        checkboxContainer.style.display = "none";
+                        checkbox.checked = false;
+                    }
+                });
+                const visibleCheckboxes = Array.from(assigneeCheckboxes).filter(cb => cb.parentElement.style.display !== "none");
+                const allVisibleChecked = visibleCheckboxes.every(cb => cb.checked);
+                selectAllCheckbox.checked = allVisibleChecked;
+            });
+
+            confirmButton.addEventListener("click", function() {
+                const selectedAssignees = Array.from(assigneeCheckboxes)
+                    .filter(checkbox => checkbox.checked)
+                    .map(checkbox => checkbox.value);
+                
+                assigneesInput.value = JSON.stringify(selectedAssignees);
+
+                if (selectedAssignees.length === 0) {
+                    selectedAssigneesDiv.textContent = "None selected";
+                } else {
+                    let displayText = "";
+                    selectedAssignees.forEach(userId => {
+                        if (userId === "{{ frappe.session.user }}") {
+                            displayText += `Myself ({{ frappe.session.user }}), `;
+                        } else if (isPrincipal) {
+                            const hod = hods.find(h => h.user_id === userId);
+                            if (hod) {
+                                displayText += `${hod.employee_name} (${hod.user_id}), `;
+                            }
+                        } else if (isHod) {
+                            const instructor = instructors.find(i => i.user_id === userId);
+                            if (instructor) {
+                                displayText += `${instructor.employee_name} (${instructor.user_id}), `;
+                            }
+                        } else if (isInstructor) {
+                            const student = students.find(s => s.name === userId);
+                            if (student) {
+                                displayText += `${student.full_name} (${student.name}), `;
+                            }
+                        }
+                    });
+                    selectedAssigneesDiv.textContent = displayText.slice(0, -2);
+                }
+
+                $("#assigneeModal").modal("hide");
+            });
+
+            document.getElementById("assign-todo-form").addEventListener("submit", function(e) {
+                if (!assigneesInput.value || assigneesInput.value === "[]") {
+                    e.preventDefault();
+                    alert("Please select at least one assignee.");
+                }
+            });
+        }
+
+        const studentAssigneeModal = document.getElementById("studentAssigneeModal");
+        if (studentAssigneeModal) {
+            const studentCheckbox = document.querySelector(".student-assignee-checkbox");
+            const studentConfirmButton = document.getElementById("student-confirm-assignees");
+            const studentAssigneesInput = document.getElementById("student-assignees");
+            const studentSelectedAssigneesDiv = document.getElementById("student-selected-assignees");
+
+            studentConfirmButton.addEventListener("click", function() {
+                const selectedAssignees = studentCheckbox.checked ? [studentCheckbox.value] : [];
+                studentAssigneesInput.value = JSON.stringify(selectedAssignees);
+                studentSelectedAssigneesDiv.textContent = selectedAssignees.length === 0 ? "None selected" : `Myself ({{ frappe.session.user }})`;
+                $("#studentAssigneeModal").modal("hide");
+            });
+
+            document.getElementById("student-todo-form").addEventListener("submit", function(e) {
+                if (!studentAssigneesInput.value || studentAssigneesInput.value === "[]") {
+                    e.preventDefault();
+                    alert("Please select yourself as the assignee.");
+                }
+            });
+        }
+
 
         updateTodos();
 
@@ -418,7 +840,9 @@
                 },
                 callback: function(r) {
                     if (r.message) {
-                        // Prepare the message based on the action
+
+                        console.log("Bulk action successful:", r.message);
+
                         let displayMessage = "";
                         if (apiAction === "delete") {
                             displayMessage = "ToDos deleted successfully!";
@@ -426,12 +850,15 @@
                             displayMessage = `ToDos status changed to ${value} successfully!`;
                         }
 
-                        // Reset selections
+
                         selectedTodos = [];
                         document.getElementById("select-all").checked = false;
                         document.getElementById("bulk-action").value = "";
                         toggleBulkActionButton();
 
+                        const params = new URLSearchParams(window.location.search);
+                        params.set("message", displayMessage);
+                        params.set("message_type", "success");
                         // Construct the URL with query parameters to preserve current state
                         const params = new URLSearchParams(window.location.search);
                         params.set("message", displayMessage);
@@ -441,13 +868,18 @@
                         if (sortOrder) params.set("sort_order", sortOrder);
                         if (showPrincipalTodos) params.set("show_principal_todos", "1");
                         if (showHodTodos) params.set("show_hod_todos", "1");
-                        // Reload the page with the message
+                        if (showPersonalTodos) params.set("show_personal_todos", "1");
+                        window.location.href = `/todo?${params.toString()}`;
+                    } else {
+                        console.error("No message returned from bulk_update_todos");
+                        alert("Bulk action failed. Check console for details.");
+
                         window.location.href = `/todo?${params.toString()}`;
                     }
                 },
                 error: function(err) {
                     console.error("Bulk Action Error:", err);
-                    // Display error message via query parameter
+
                     const params = new URLSearchParams(window.location.search);
                     params.set("message", "Failed to perform bulk action: " + (err.message || "Unknown error"));
                     params.set("message_type", "danger");
@@ -455,6 +887,8 @@
                     if (sortOrder) params.set("sort_order", sortOrder);
                     if (showPrincipalTodos) params.set("show_principal_todos", "1");
                     if (showHodTodos) params.set("show_hod_todos", "1");
+                    if (showPersonalTodos) params.set("show_personal_todos", "1");
+
                     window.location.href = `/todo?${params.toString()}`;
                 }
             });
@@ -484,6 +918,10 @@
                 sort_order: sortOrder,
                 filters: JSON.stringify(filters),
                 show_principal_todos: showPrincipalTodos ? "1" : "0",
+
+                show_hod_todos: showHodTodos ? "1" : "0",
+                show_personal_todos: showPersonalTodos ? "1" : "0"
+
                 show_hod_todos: showHodTodos ? "1" : "0"
             },
             callback: function(r) {
@@ -500,6 +938,12 @@
 
                 if (data.data && data.data.length > 0) {
                     data.data.forEach(todo => {
+                        let row = `<tr>`;
+                        if (isPrincipal || (isHod && !showPrincipalTodos) || (isInstructor && !showHodTodos) || (isStudent && showPersonalTodos)) {
+                            row += `<td><input type="checkbox" class="todo-checkbox" value="${todo.name}" ${selectedTodos.includes(todo.name) ? 'checked' : ''}></td>`;
+                        }
+                        row += `
+
                         let row = `<tr>
                             ${isPrincipal || (isHod && !showPrincipalTodos) || (isInstructor && !showHodTodos) ? 
                                 `<td><input type="checkbox" class="todo-checkbox" value="${todo.name}" ${selectedTodos.includes(todo.name) ? 'checked' : ''}></td>` : ""}
@@ -544,9 +988,17 @@
                         }
                         row += `</td>
                             <td>${todo.creation}</td>
+
+                            <td>${todo.due_date || "Not Set"}</td>
+                            <td>${todo.priority || "Medium"}</td>`;
+                        if (isPrincipal || (isHod && !showPrincipalTodos) || (isInstructor && !showHodTodos) || (isStudent && showPersonalTodos)) {
+                            row += `
+                                <td>
+
                             <td>${todo.due_date || "Not Set"}</td>` +
                             `${isPrincipal || (isHod && !showPrincipalTodos) || (isInstructor && !showHodTodos) ? 
                                 `<td>
+
                                     <div class="dropdown">
                                         <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenu${todo.name}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                             Actions
@@ -561,6 +1013,9 @@
                                             </form>
                                         </div>
                                     </div>
+                                </td>`;
+                        }
+                        row += `</tr>`;
                                 </td>` : ""}
                         </tr>`;
                         tbody.insertAdjacentHTML("beforeend", row);
@@ -591,14 +1046,83 @@
                             options = hods.map(hod => 
                                 `<option value="${hod.user_id}" ${hod.user_id === todo.owner ? 'selected' : ''}>${hod.employee_name} (${hod.user_id}) - ${hod.department}</option>`
                             ).join('');
+                            options = `<option value="{{ frappe.session.user }}" ${"{{ frappe.session.user }}" === todo.owner ? 'selected' : ''}>Myself ({{ frappe.session.user }})</option>` + options;
+
                         } else if (isHod) {
                             options = instructors.map(instr => 
                                 `<option value="${instr.user_id}" ${instr.user_id === todo.owner ? 'selected' : ''}>${instr.employee_name} (${instr.user_id})</option>`
                             ).join('');
+                            options = `<option value="{{ frappe.session.user }}" ${"{{ frappe.session.user }}" === todo.owner ? 'selected' : ''}>Myself ({{ frappe.session.user }})</option>` + options;
+
                         } else if (isInstructor) {
                             options = students.map(stu => 
                                 `<option value="${stu.name}" ${stu.name === todo.owner ? 'selected' : ''}>${stu.full_name} (${stu.name})</option>`
                             ).join('');
+                            options = `<option value="{{ frappe.session.user }}" ${"{{ frappe.session.user }}" === todo.owner ? 'selected' : ''}>Myself ({{ frappe.session.user }})</option>` + options;
+                        } else if (isStudent) {
+                            options = `<option value="{{ frappe.session.user }}" selected>Myself ({{ frappe.session.user }})</option>`;
+                        }
+
+                        if (isPrincipal || (isHod && !showPrincipalTodos) || (isInstructor && !showHodTodos) || (isStudent && showPersonalTodos)) {
+                            let editModal = `
+                                <div class="modal fade" id="editModal${todo.name}" tabindex="-1" role="dialog" aria-labelledby="editModalLabel${todo.name}" aria-hidden="true">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="editModalLabel${todo.name}">Edit ToDo</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">×</span>
+                                                </button>
+                                            </div>
+                                            <form method="POST" action="/todo">
+                                                <div class="modal-body">
+                                                    <input type="hidden" name="csrf_token" value="${csrfToken}">
+                                                    <input type="hidden" name="todo_name" value="${todo.name}">
+                                                    <input type="hidden" name="edit" value="1">
+                                                    <input type="hidden" name="original_assignee" value="${todo.owner}">
+                                                    <div class="form-group">
+                                                        <label for="edit_assignee_${todo.name}">Assigned To</label>
+                                                        <select name="assignee" id="edit_assignee_${todo.name}" class="form-control" required>
+                                                            <option value="">-- Select an Assignee --</option>
+                                                            ${options}
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="edit_description_${todo.name}">Description</label>
+                                                        <textarea name="description" id="edit_description_${todo.name}" class="form-control" rows="4" required>${todo.description}</textarea>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="edit_status_${todo.name}">Status</label>
+                                                        <select name="status" id="edit_status_${todo.name}" class="form-control">
+                                                            <option value="Open" ${todo.status === "Open" ? "selected" : ""}>Open</option>
+                                                            <option value="Closed" ${todo.status === "Closed" ? "selected" : ""}>Closed</option>
+                                                            <option value="Cancelled" ${todo.status === "Cancelled" ? "selected" : ""}>Cancelled</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="edit_due_date_${todo.name}">Due Date (Optional)</label>
+                                                        <input type="date" name="due_date" id="edit_due_date_${todo.name}" class="form-control" value="${todo.due_date}">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="edit_priority_${todo.name}">Priority</label>
+                                                        <select name="priority" id="edit_priority_${todo.name}" class="form-control">
+                                                            <option value="Low" ${todo.priority === "Low" ? "selected" : ""}>Low</option>
+                                                            <option value="Medium" ${todo.priority === "Medium" ? "selected" : ""}>Medium</option>
+                                                            <option value="High" ${todo.priority === "High" ? "selected" : ""}>High</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>`;
+                            document.body.insertAdjacentHTML("beforeend", editModal);
+                        }
+
                         }
 
                         let editModal = `
@@ -675,7 +1199,10 @@
                         });
                     });
                 } else {
+                    document.getElementById("todo-count").textContent = `No ToDos ${isPrincipal || isHod || isInstructor || (isStudent && showPersonalTodos) ? "assigned" : "assigned to you"} yet${searchTerm ? ` matching "${searchTerm}"` : ""}.`;
+
                     document.getElementById("todo-count").textContent = `No ToDos ${isPrincipal || isHod || isInstructor ? "assigned" : "assigned to you"} yet${searchTerm ? ` matching "${searchTerm}"` : ""}.`;
+
                     document.getElementById("load-more").style.display = "none";
                 }
             },
