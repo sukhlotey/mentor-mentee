@@ -174,9 +174,9 @@ def get_context(context):
                         frappe.throw("Students can only assign ToDos to themselves.")
                     assignee_user = frappe.session.user
                     assignee_name = frappe.get_value("User", assignee, "full_name") or assignee
+                # Update fields except owner directly
                 todo.description = description
                 todo.status = status
-                todo.owner = assignee_user
                 if due_date:
                     todo.date = due_date
                 else:
@@ -193,28 +193,20 @@ def get_context(context):
                         todo = frappe.get_doc("ToDo", todo_name, for_update=True)
                         todo.description = description
                         todo.status = status
-                        todo.owner = assignee_user
                         if due_date:
                             todo.date = due_date
                         else:
                             todo.date = None
                         todo.priority = priority
-                updated_todo = frappe.get_doc("ToDo", todo_name)
-                if updated_todo.owner != assignee_user:
-                    frappe.db.set_value("ToDo", todo_name, "owner", assignee_user)
-                    frappe.db.commit()
-                needs_force_update = False
-                if updated_todo.description != description or (due_date and updated_todo.date != due_date) or (not due_date and updated_todo.date):
-                    needs_force_update = True
-                    update_dict = {"description": description, "date": due_date if due_date else None}
-                    frappe.db.set_value("ToDo", todo_name, update_dict, update_modified=False)
-                    frappe.db.commit()
+                # Update assignee separately using db.set_value to avoid "set only once" error
                 if assignee_user != original_assignee:
+                    frappe.db.set_value("ToDo", todo_name, "owner", assignee_user)
                     frappe.sendmail(
                         recipients=[assignee_user],
                         subject="ToDo Reassigned to You",
                         message=f"Dear {assignee_name},\n\nA ToDo has been reassigned to you by {frappe.session.user}:\n\n{description}\n\nCreated: {todo.creation}\nDue Date: {due_date or 'Not Set'}\nStatus: {status}\nPriority: {priority}\n\nRegards,\n{'Principal' if context.is_principal else 'HOD' if context.is_hod else 'Instructor' if context.is_instructor else 'Student'}",
                     )
+                frappe.db.commit()
                 context.message = "ToDo updated successfully!"
                 context.message_type = "success"
             elif "assignees" in frappe.form_dict:
@@ -302,7 +294,7 @@ def get_context(context):
             frappe.log_error(f"Error: {error_message}", "ToDo Error")
             context.error_message = f"Error: {str(e)}"
             frappe.local.response["type"] = "redirect"
-            frappe.local.response["location"] = f"/todo?message={frappe.utils.escape(str(e))}&message_type=danger"
+            frappe.local.response["location"] = f"/todo?message={str(e)}&message_type=danger"
             return None
     context.show_principal_todos = frappe.form_dict.get("show_principal_todos", "0") == "1" and context.is_hod
     context.show_hod_todos = frappe.form_dict.get("show_hod_todos", "0") == "1" and context.is_instructor

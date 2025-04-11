@@ -854,6 +854,12 @@
 
                 if (data.data && data.data.length > 0) {
                     data.data.forEach(todo => {
+                        // Determine if this ToDo is "new" (assigned to me, not by me, not seen)
+                        const isAssignedToMe = todo.owner === "{{ frappe.session.user }}";
+                        const isNotByMe = todo.assigned_by !== "{{ frappe.session.user }}";
+                        const seenTodos = JSON.parse(localStorage.getItem("seenTodos") || "[]");
+                        const isNew = isAssignedToMe && isNotByMe && !seenTodos.includes(todo.name);
+
                         let row = `<tr>`;
                         if (isPrincipal || (isHod && !showPrincipalTodos) || (isInstructor && !showHodTodos) || (isStudent && showPersonalTodos)) {
                             row += `<td><input type="checkbox" class="todo-checkbox" value="${todo.name}" ${selectedTodos.includes(todo.name) ? 'checked' : ''}></td>`;
@@ -861,9 +867,13 @@
                         row += `
                             <td>${todo.assigned_to_name}</td>
                             <td>${todo.assigned_by_name}</td>
-                            <td>${todo.description.length > 50 ? 
-                                `<a href="#" data-toggle="modal" data-target="#descModal${todo.name}">${todo.description.substring(0, 50)}…more</a>` : 
-                                todo.description}</td>
+                            <td>
+                                ${todo.description.length > 50 ? 
+                                    `<a href="#" data-toggle="modal" data-target="#descModal${todo.name}" class="todo-link" data-todo="${todo.name}">${todo.description.substring(0, 50)}…more</a>` : 
+                                    `<span class="todo-link" data-todo="${todo.name}">${todo.description}</span>`}
+                                    ${isNew ? '<span class="badge badge-pill badge-danger mr-2">New</span>' : ''}
+   
+                            </td>
                             <td>${todo.status}</td>
                             <td>`;
                         if (todo.owner === "{{ frappe.session.user }}") {
@@ -1024,6 +1034,20 @@
                                 </div>`;
                             document.body.insertAdjacentHTML("beforeend", editModal);
                         }
+                    });
+
+                    // Add click handlers for badge removal
+                    document.querySelectorAll(".todo-link").forEach(link => {
+                        link.addEventListener("click", function() {
+                            const todoName = this.getAttribute("data-todo");
+                            let seenTodos = JSON.parse(localStorage.getItem("seenTodos") || "[]");
+                            if (!seenTodos.includes(todoName)) {
+                                seenTodos.push(todoName);
+                                localStorage.setItem("seenTodos", JSON.stringify(seenTodos));
+                                const badge = this.parentElement.querySelector(".badge");
+                                if (badge) badge.remove();
+                            }
+                        });
                     });
 
                     document.getElementById("load-more").style.display = data.has_more ? "block" : "none";
