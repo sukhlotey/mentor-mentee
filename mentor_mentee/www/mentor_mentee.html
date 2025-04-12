@@ -3,7 +3,7 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4" >
+<div class="container mt-4">
     <h2 class="text-center">Mentor Mentee System</h2>
 
     <input type="text" id="searchInput" class="form-control form-control-lg p-6 mt-3 w-75 mx-auto"
@@ -41,74 +41,39 @@
         </div>
     </div>
 
-    <nav class="mt-4" id="pagination-section" {% if search_query or total_pages <= 1 %}style="display: none;"{% endif %}>
-        <ul class="pagination justify-content-center">
-            <!-- Previous Button -->
-            {% if current_page > 1 %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ current_page - 1 }}{% if search_query %}&search={{ search_query }}{% endif %}">Previous</a>
-                </li>
-            {% endif %}
-
-            <!-- Page Numbers with Ellipses -->
-            {% set max_buttons = 7 %} <!-- Total buttons to show (including first, last, and ellipses) -->
-            {% set side_buttons = 2 %} <!-- Pages to show on either side of current -->
-
-            {% if total_pages <= max_buttons %}
-                <!-- If total pages are few, show all -->
-                {% for p in range(1, total_pages + 1) %}
-                    <li class="page-item {% if p == current_page %}active{% endif %}">
-                        <a class="page-link" href="?page={{ p }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ p }}</a>
-                    </li>
-                {% endfor %}
-            {% else %}
-                <!-- First Page -->
-                <li class="page-item {% if current_page == 1 %}active{% endif %}">
-                    <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}">1</a>
-                </li>
-
-                <!-- Ellipsis before current range if needed -->
-                {% if current_page > side_buttons + 2 %}
-                    <li class="page-item disabled">
-                        <span class="page-link">...</span>
-                    </li>
-                {% endif %}
-
-                <!-- Pages around current page -->
-                {% set start_page = [current_page - side_buttons, 2]|max %}
-                {% set end_page = [current_page + side_buttons, total_pages - 1]|min %}
-                {% for p in range(start_page, end_page + 1) %}
-                    <li class="page-item {% if p == current_page %}active{% endif %}">
-                        <a class="page-link" href="?page={{ p }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ p }}</a>
-                    </li>
-                {% endfor %}
-
-                <!-- Ellipsis after current range if needed -->
-                {% if current_page < total_pages - side_buttons - 1 %}
-                    <li class="page-item disabled">
-                        <span class="page-link">...</span>
-                    </li>
-                {% endif %}
-
-                <!-- Last Page -->
-                <li class="page-item {% if current_page == total_pages %}active{% endif %}">
-                    <a class="page-link" href="?page={{ total_pages }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ total_pages }}</a>
-                </li>
-            {% endif %}
-
-            <!-- Next Button -->
-            {% if current_page < total_pages %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ current_page + 1 }}{% if search_query %}&search={{ search_query }}{% endif %}">Next</a>
-                </li>
-            {% endif %}
-        </ul>
-    </nav>
+    <div class="mt-4" id="pagination-section" {% if search_query %}style="display: none;"{% endif %}>
+        <div class="d-flex justify-content-between align-items-center">
+            <div id="page-length-buttons">
+                <button class="btn btn-secondary page-length-btn" data-length="20">20</button>
+                <button class="btn btn-secondary page-length-btn" data-length="100">100</button>
+                <button class="btn btn-secondary page-length-btn" data-length="500">500</button>
+                <button class="btn btn-secondary page-length-btn" data-length="2500">2500</button>
+            </div>
+            <div>
+                <button class="btn btn-primary" id="load-more-btn">Load More</button>
+            </div>
+        </div>
+    </div>
 </div>
+<style>
+    .instructor-item, .student-item {
+        cursor: pointer;
+    }
+    .selected {
+        background-color: #e6f3ff;
+        transition: background-color 0.3s ease;
+    }
+    .instructor-item:hover, .student-item:hover {
+        background-color: #f0f0f0;
+    }
+</style>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    let start = 0;
+    let pageLength = 10; 
     let currentSearchQuery = "{{ search_query | default('') }}";
-    let currentPage = {{ current_page }};
+    let totalRecords = {{ total_records | default(0) }};
+    let recordsLoaded = 0;
     let instructorGroups = {{ instructor_groups | tojson | safe }};
     let studentInstructors = {{ student_instructors | tojson | safe }};
     let detailsList = document.getElementById("details-list");
@@ -116,11 +81,19 @@ document.addEventListener("DOMContentLoaded", function () {
     let instructorsList = document.getElementById("instructors-list");
     let studentsList = document.getElementById("students-list");
     let paginationSection = document.getElementById("pagination-section");
+    let loadMoreBtn = document.getElementById("load-more-btn");
+    let pageLengthButtons = document.querySelectorAll(".page-length-btn");
+    let selectedItem = null;
 
-    // Function to attach event listeners for details
     function attachEventListeners() {
         document.querySelectorAll(".instructor-item").forEach(item => {
             item.addEventListener("click", function () {
+                if (selectedItem) {
+                    selectedItem.classList.remove("selected");
+                }
+                this.classList.add("selected");
+                selectedItem = this;
+
                 const instructorName = this.dataset.instructor;
                 detailsList.innerHTML = "<p>Loading student groups...</p>";
 
@@ -145,6 +118,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         document.querySelectorAll(".student-item").forEach(item => {
             item.addEventListener("click", function () {
+                if (selectedItem) {
+                    selectedItem.classList.remove("selected");
+                }
+                this.classList.add("selected");
+                selectedItem = this;
+
                 const studentName = this.dataset.student;
                 detailsList.innerHTML = "<p>Loading assigned instructors...</p>";
 
@@ -164,17 +143,23 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    function updatePage(searchQuery, page) {
+    function updatePage(searchQuery, startOffset, append = false, itemsPerPage = pageLength) {
         frappe.call({
             method: "mentor_mentee.www.mentor_mentee.search_mentor_mentee",
             args: {
                 search_query: searchQuery,
-                page: page
+                start: startOffset,
+                items_per_page: itemsPerPage
             },
             callback: function(response) {
                 let data = response.message;
 
-                instructorsList.innerHTML = "";
+                if (!append) {
+                    instructorsList.innerHTML = "";
+                    studentsList.innerHTML = "";
+                    recordsLoaded = 0; 
+                }
+
                 data.instructors.forEach(function(instructor) {
                     let li = document.createElement("li");
                     li.classList.add("list-group-item", "instructor-item");
@@ -183,7 +168,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     instructorsList.appendChild(li);
                 });
 
-                studentsList.innerHTML = "";
                 data.students.forEach(function(student) {
                     let li = document.createElement("li");
                     li.classList.add("list-group-item", "student-item");
@@ -192,34 +176,81 @@ document.addEventListener("DOMContentLoaded", function () {
                     studentsList.appendChild(li);
                 });
 
-                instructorGroups = data.instructor_groups;
-                studentInstructors = data.student_instructors;
-                currentSearchQuery = data.search_query;
-                currentPage = data.current_page;
-
-                detailsList.innerHTML = "<p>Select an instructor or student to view details.</p>";
-
-                attachEventListeners();
-
-                if (searchQuery === "" && data.total_pages > 1) {
-                    paginationSection.style.display = "block";
+                if (!append) {
+                    instructorGroups = data.instructor_groups;
+                    studentInstructors = data.student_instructors;
                 } else {
+                    Object.assign(instructorGroups, data.instructor_groups);
+                    Object.assign(studentInstructors, data.student_instructors);
+                }
+
+                currentSearchQuery = data.search_query;
+                totalRecords = data.total_records; 
+                pageLength = data.items_per_page;
+                recordsLoaded += Math.max(data.instructors.length, data.students.length);
+
+                if (!append) {
+                    detailsList.innerHTML = "<p>Select an instructor or student to view details.</p>";
+                }
+
+                console.log("Records Loaded:", recordsLoaded, "Total Records:", totalRecords, "Start:", start, "Page Length:", pageLength, "Has More:", data.has_more);
+
+                if (searchQuery === "" && totalRecords > 0) {
+                    paginationSection.style.display = "block";
+                } else if (searchQuery !== "") {
                     paginationSection.style.display = "none";
                 }
+
+                loadMoreBtn.disabled = !data.has_more;
+                loadMoreBtn.style.display = data.has_more ? "inline-block" : "inline-block";
+
+                attachEventListeners();
             }
         });
     }
 
-    attachEventListeners();
+    pageLengthButtons.forEach(button => {
+        button.addEventListener("click", function() {
+            pageLength = parseInt(this.dataset.length);
+            start = 0;
+            updatePage(currentSearchQuery, start, false, pageLength);
+            pageLengthButtons.forEach(btn => btn.classList.remove("active"));
+            this.classList.add("active");
+        });
+    });
+
+    loadMoreBtn.addEventListener("click", function() {
+        if (!this.disabled) {
+            start += pageLength; // Increment start by page length
+            updatePage(currentSearchQuery, start, true, pageLength);
+        }
+    });
 
     let searchTimeout;
     searchInput.addEventListener("input", function() {
         let searchValue = this.value.trim().toLowerCase();
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(function() {
-            updatePage(searchValue, 1);
+            start = 0; // Reset start on new search
+            updatePage(searchValue, start, false, pageLength);
         }, 500);
     });
+
+    searchInput.addEventListener("change", function() {
+        if (this.value.trim() === "") {
+            start = 0; // Reset start on clear
+            updatePage("", start, false, pageLength);
+        }
+    });
+
+    pageLengthButtons.forEach(button => {
+        if (parseInt(button.dataset.length) === 10) {
+            button.classList.add("active");
+        }
+    });
+
+    attachEventListeners();
 });
 </script>
 {% endblock %}
+
