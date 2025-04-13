@@ -26,8 +26,11 @@
             <h4>Students</h4>
             <ul id="students-list" class="list-group">
                 {% for student in students %}
-                <li class="list-group-item student-item" data-student="{{ student.name }}">
+                <li class="list-group-item student-item" data-student="{{ student.name }}" data-image="{{ student.image }}" data-guardians="{{ student.guardian_names }}">
                     {{ student.student_name }}
+                    {% if student.student_email_id %}
+                    <br><small class="text-muted">{{ student.student_email_id }}</small>
+                    {% endif %}
                 </li>
                 {% endfor %}
             </ul>
@@ -58,6 +61,7 @@
 <style>
     .instructor-item, .student-item {
         cursor: pointer;
+        position: relative;
     }
     .selected {
         background-color: #e6f3ff;
@@ -65,6 +69,31 @@
     }
     .instructor-item:hover, .student-item:hover {
         background-color: #f0f0f0;
+    }
+    .custom-tooltip {
+        display: none;
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0.5);
+        color: #fff;
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        z-index: 1000;
+        width: 200px;
+        top: -100%;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+    }
+    .student-item:hover .custom-tooltip {
+        display: block;
+    }
+    .custom-tooltip img {
+        width: 100px;
+        height: 100px;
+        border-radius:50%;
+        margin-bottom: 5px;
     }
 </style>
 <script>
@@ -140,6 +169,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     detailsList.innerHTML = "<p>No instructor assigned to this student.</p>";
                 }
             });
+
+            const tooltip = document.createElement("div");
+            tooltip.className = "custom-tooltip";
+            const image = item.dataset.image;
+            const guardians = item.dataset.guardians || "No guardians listed";
+            tooltip.innerHTML = image ? `<img src="${image}" alt="Student Image"><br>Guardians: ${guardians}` : `Guardians: ${guardians}`;
+            item.appendChild(tooltip);
         });
     }
 
@@ -172,7 +208,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     let li = document.createElement("li");
                     li.classList.add("list-group-item", "student-item");
                     li.dataset.student = student.name;
-                    li.textContent = student.student_name;
+                    li.dataset.image = student.image || "";
+                    li.dataset.guardians = student.guardian_names || "";
+                    li.innerHTML = `${student.student_name}${student.student_email_id ? '<br><small class="text-muted">' + student.student_email_id + '</small>' : ''}`;
                     studentsList.appendChild(li);
                 });
 
@@ -231,7 +269,7 @@ document.addEventListener("DOMContentLoaded", function () {
         let searchValue = this.value.trim().toLowerCase();
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(function() {
-            start = 0; // Reset start on new search
+            start = 0;
             updatePage(searchValue, start, false, pageLength);
         }, 500);
     });
@@ -253,4 +291,3 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 {% endblock %}
-

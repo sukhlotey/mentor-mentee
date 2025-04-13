@@ -15,7 +15,23 @@ def get_context(context):
         student_filters["student_name"] = ["like", f"%{search_query}%"]
 
     all_instructors = frappe.get_all("Instructor", fields=["name"], filters=instructor_filters)
-    all_students = frappe.get_all("Student", fields=["name", "student_name"], filters=student_filters)
+    all_students = frappe.get_all("Student", fields=["name", "student_name", "student_email_id", "image"], filters=student_filters)
+
+    for student in all_students:
+        guardians = frappe.get_all(
+            "Student Guardian",
+            filters={"parent": student["name"]},
+            fields=["guardian"]
+        )
+        guardian_names = [
+            frappe.get_value("Guardian", g["guardian"], "guardian_name")
+            for g in guardians
+        ]
+        student["guardian_names"] = ", ".join([n for n in guardian_names if n]) if guardian_names else ""
+        if student["image"]:
+            student["image"] = frappe.utils.get_url(student["image"])
+        else:
+            student["image"] = ""
 
     instructors = all_instructors[offset: offset + items_per_page]
     students = all_students[offset: offset + items_per_page]
@@ -79,7 +95,23 @@ def search_mentor_mentee(search_query, start=0, items_per_page=10):
         student_filters["student_name"] = ["like", f"%{search_query}%"]
 
     all_instructors = frappe.get_all("Instructor", fields=["name"], filters=instructor_filters)
-    all_students = frappe.get_all("Student", fields=["name", "student_name"], filters=student_filters)
+    all_students = frappe.get_all("Student", fields=["name", "student_name", "student_email_id", "image"], filters=student_filters)
+
+    for student in all_students:
+        guardians = frappe.get_all(
+            "Student Guardian",
+            filters={"parent": student["name"]},
+            fields=["guardian"]
+        )
+        guardian_names = [
+            frappe.get_value("Guardian", g["guardian"], "guardian_name")
+            for g in guardians
+        ]
+        student["guardian_names"] = ", ".join([n for n in guardian_names if n]) if guardian_names else ""
+        if student["image"]:
+            student["image"] = frappe.utils.get_url(student["image"])
+        else:
+            student["image"] = ""
 
     instructors = all_instructors[offset: offset + items_per_page + 1] 
     students = all_students[offset: offset + items_per_page + 1]
@@ -132,3 +164,4 @@ def search_mentor_mentee(search_query, start=0, items_per_page=10):
         "items_per_page": items_per_page,
         "search_query": search_query
     }
+//sukh
