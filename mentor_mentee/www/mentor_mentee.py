@@ -33,6 +33,17 @@ def get_context(context):
         else:
             student["image"] = ""
 
+    for instructor in all_instructors:
+        employee = frappe.get_value("Instructor", instructor["name"], "employee")  # Assuming 'employee' field
+        if employee:
+            user_id = frappe.get_value("Employee", employee, "user_id")
+            if user_id:
+                instructor["instructor_email"] = frappe.get_value("User", user_id, "email") or ""
+            else:
+                instructor["instructor_email"] = ""
+        else:
+            instructor["instructor_email"] = ""
+
     instructors = all_instructors[offset: offset + items_per_page]
     students = all_students[offset: offset + items_per_page]
 
@@ -113,6 +124,17 @@ def search_mentor_mentee(search_query, start=0, items_per_page=10):
         else:
             student["image"] = ""
 
+    for instructor in all_instructors:
+        employee = frappe.get_value("Instructor", instructor["name"], "employee")  # Assuming 'employee' field
+        if employee:
+            user_id = frappe.get_value("Employee", employee, "user_id")
+            if user_id:
+                instructor["instructor_email"] = frappe.get_value("User", user_id, "email") or ""
+            else:
+                instructor["instructor_email"] = ""
+        else:
+            instructor["instructor_email"] = ""
+
     instructors = all_instructors[offset: offset + items_per_page + 1] 
     students = all_students[offset: offset + items_per_page + 1]
 
@@ -164,4 +186,3 @@ def search_mentor_mentee(search_query, start=0, items_per_page=10):
         "items_per_page": items_per_page,
         "search_query": search_query
     }
-//sukh

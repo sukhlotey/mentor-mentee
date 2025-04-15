@@ -17,6 +17,9 @@
                 {% for instructor in instructors %}
                 <li class="list-group-item instructor-item" data-instructor="{{ instructor.name }}">
                     {{ instructor.name }}
+                    {% if instructor.instructor_email %}
+                    <br><small class="text-muted">{{ instructor.instructor_email }}</small>
+                    {% endif %}
                 </li>
                 {% endfor %}
             </ul>
@@ -201,6 +204,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     li.classList.add("list-group-item", "instructor-item");
                     li.dataset.instructor = instructor.name;
                     li.textContent = instructor.name;
+                    if (instructor.instructor_email) {
+                        li.innerHTML += `<br><small class="text-muted">${instructor.instructor_email}</small>`;
+                    }
                     instructorsList.appendChild(li);
                 });
 
@@ -291,3 +297,4 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 {% endblock %}
+</DOCUMENT>
