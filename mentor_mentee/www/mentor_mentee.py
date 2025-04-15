@@ -2,9 +2,16 @@ import frappe
 
 def get_context(context):
 
+
     search_query = frappe.form_dict.get("search", "").strip().lower()
     page = int(frappe.form_dict.get("page", 1))
     items_per_page = int(frappe.form_dict.get("items_per_page", 10)) 
+
+    search_query = frappe.form_dict.get("search", "").strip().lower()
+    page = int(frappe.form_dict.get("page", 1))
+
+    items_per_page = 10
+
     offset = (page - 1) * items_per_page
 
     instructor_filters = {}
@@ -15,6 +22,7 @@ def get_context(context):
         student_filters["student_name"] = ["like", f"%{search_query}%"]
 
     all_instructors = frappe.get_all("Instructor", fields=["name"], filters=instructor_filters)
+
     all_students = frappe.get_all("Student", fields=["name", "student_name", "student_email_id", "image"], filters=student_filters)
 
     for student in all_students:
@@ -33,6 +41,7 @@ def get_context(context):
         else:
             student["image"] = ""
 
+<<<<<<< HEAD
     for instructor in all_instructors:
         employee = frappe.get_value("Instructor", instructor["name"], "employee")  # Assuming 'employee' field
         if employee:
@@ -43,14 +52,23 @@ def get_context(context):
                 instructor["instructor_email"] = ""
         else:
             instructor["instructor_email"] = ""
+=======
+    all_students = frappe.get_all("Student", fields=["name", "student_name"], filters=student_filters)
+
+>>>>>>> ddfa81d2dc7403983ee3f4cf55756bba16a498f5
 
     instructors = all_instructors[offset: offset + items_per_page]
     students = all_students[offset: offset + items_per_page]
+
 
     total_instructor_records = len(all_instructors)
     total_student_records = len(all_students)
     total_records = max(total_instructor_records, total_student_records)
     total_pages = (total_records + items_per_page - 1) 
+
+    total_records = max(len(all_instructors), len(all_students))
+    total_pages = (total_records + items_per_page - 1) // items_per_page
+
 
     instructor_groups = {}
     for instructor in instructors:
@@ -59,16 +77,24 @@ def get_context(context):
             filters={"instructor": instructor["name"]},
             fields=["parent"]
         )
+
         groups = []
         for link in group_links:
             group_name = link["parent"]
             group = frappe.get_value("Student Group", group_name, ["name", "student_group_name"])
+
             if group:
                 student_names = [
                     frappe.get_value("Student", s["student"], "student_name")
                     for s in frappe.get_all("Student Group Student", filters={"parent": group_name}, fields=["student"])
                 ]
+
                 groups.append({"name": group[0], "student_group_name": group[1], "students": student_names})
+
+
+                groups.append({"name": group[0], "student_group_name": group[1], "students": student_names})
+
+
         instructor_groups[instructor["name"]] = groups
 
     student_instructors = {}
@@ -92,11 +118,19 @@ def get_context(context):
         "title": "Mentor Mentee System"
     })
 
+
 @frappe.whitelist(allow_guest=False)
 def search_mentor_mentee(search_query, start=0, items_per_page=10):
     start = int(start)
     items_per_page = int(items_per_page)
     offset = start
+
+
+@frappe.whitelist(allow_guest=False)
+def search_mentor_mentee(search_query, page=1):
+    items_per_page = 10
+    offset = (int(page) - 1) * items_per_page
+
 
     instructor_filters = {}
     student_filters = {}
@@ -106,6 +140,7 @@ def search_mentor_mentee(search_query, start=0, items_per_page=10):
         student_filters["student_name"] = ["like", f"%{search_query}%"]
 
     all_instructors = frappe.get_all("Instructor", fields=["name"], filters=instructor_filters)
+
     all_students = frappe.get_all("Student", fields=["name", "student_name", "student_email_id", "image"], filters=student_filters)
 
     for student in all_students:
@@ -147,6 +182,14 @@ def search_mentor_mentee(search_query, start=0, items_per_page=10):
         instructors = instructors[:items_per_page]
         students = students[:items_per_page]
 
+    all_students = frappe.get_all("Student", fields=["name", "student_name"], filters=student_filters)
+
+    instructors = all_instructors[offset: offset + items_per_page]
+    students = all_students[offset: offset + items_per_page]
+
+    total_records = max(len(all_instructors), len(all_students))
+    total_pages = (total_records + items_per_page - 1) // items_per_page
+
     instructor_groups = {}
     for instructor in instructors:
         group_links = frappe.get_all(
@@ -154,16 +197,24 @@ def search_mentor_mentee(search_query, start=0, items_per_page=10):
             filters={"instructor": instructor["name"]},
             fields=["parent"]
         )
+
         groups = []
         for link in group_links:
             group_name = link["parent"]
             group = frappe.get_value("Student Group", group_name, ["name", "student_group_name"])
+
             if group:
                 student_names = [
                     frappe.get_value("Student", s["student"], "student_name")
                     for s in frappe.get_all("Student Group Student", filters={"parent": group_name}, fields=["student"])
                 ]
+
                 groups.append({"name": group[0], "student_group_name": group[1], "students": student_names})
+
+
+                groups.append({"name": group[0], "student_group_name": group[1], "students": student_names})
+
+
         instructor_groups[instructor["name"]] = groups
 
     student_instructors = {}
@@ -180,9 +231,19 @@ def search_mentor_mentee(search_query, start=0, items_per_page=10):
         "students": students,
         "instructor_groups": instructor_groups,
         "student_instructors": student_instructors,
+
         "total_records": total_records,
         "has_more": has_more,
         "start": start,
         "items_per_page": items_per_page,
         "search_query": search_query
     }
+<<<<<<< HEAD
+=======
+
+        "current_page": page,
+        "total_pages": total_pages,
+        "search_query": search_query
+    }
+
+>>>>>>> ddfa81d2dc7403983ee3f4cf55756bba16a498f5
