@@ -1,0 +1,23 @@
+{% extends "templates/web.html" %}
+
+{% block content %}
+    <h2>Paginated ToDo List</h2>
+
+    <div>
+        <label for="page-size">Show:</label>
+        <button class="page-size-btn" data-size="20">20</button>
+        <button class="page-size-btn" data-size="100">100</button>
+        <button class="page-size-btn" data-size="500">500</button>
+        <button class="page-size-btn" data-size="2500">2500</button>
+    </div>
+
+    <div id="todo-list"></div>
+    
+    <div id="pagination-controls">
+        <button id="prev-btn">Previous</button>
+        <span id="page-info">Page 1</span>
+        <button id="next-btn">Next</button>
+    </div>
+
+    <script src="{{ "/assets/your_app/paginated_list/pagination.js" | abs_url }}"></script>
+{% endblock %}
