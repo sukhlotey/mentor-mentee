@@ -29,18 +29,6 @@
                             <label>Selected Assignees</label>
                             <div id="selected-assignees" class="form-control" style="min-height: 38px; background-color: #f8f9fa;">None selected</div>
                             <button type="button" class="btn btn-info mt-2" data-toggle="modal" data-target="#assigneeModal">Select Assignees</button>
-
-                    <form method="POST" action="/todo">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                        <div class="form-group">
-                            <label for="hod">Select HOD</label>
-                            <select name="hod" id="hod" class="form-control" required>
-                                <option value="">-- Select an HOD --</option>
-                                {% for hod in hods %}
-                                    <option value="{{ hod.user_id }}">{{ hod.employee_name }} ({{ hod.user_id }}) - {{ hod.department }}</option>
-                                {% endfor %}
-                            </select>
-
                         </div>
                         <div class="form-group">
                             <label for="description">ToDo Description</label>
@@ -58,7 +46,6 @@
                             <label for="due_date">Due Date (Optional)</label>
                             <input type="date" name="due_date" id="due_date" class="form-control" placeholder="YYYY-MM-DD">
                         </div>
-
                         <div class="form-group">
                             <label for="priority">Priority</label>
                             <select name="priority" id="priority" class="form-control">
@@ -71,6 +58,7 @@
                     </form>
                 </div>
             </div>
+            <!-- Assignee Selection Modal -->
             <div class="modal fade" id="assigneeModal" tabindex="-1" role="dialog" aria-labelledby="assigneeModalLabel" aria-hidden="true">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
@@ -107,11 +95,6 @@
                     </div>
                 </div>
             </div>
-
-                        <button type="submit" class="btn btn-primary">Assign</button>
-                    </form>
-                </div>
-            </div>
         {% elif is_hod %}
             <div class="card mb-4">
                 <div class="card-body">
@@ -123,17 +106,6 @@
                             <label>Selected Assignees</label>
                             <div id="selected-assignees" class="form-control" style="min-height: 38px; background-color: #f8f9fa;">None selected</div>
                             <button type="button" class="btn btn-info mt-2" data-toggle="modal" data-target="#assigneeModal">Select Assignees</button>
-
-                    <form method="POST" action="/todo">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                        <div class="form-group">
-                            <label for="instructor">Select Instructor</label>
-                            <select name="instructor" id="instructor" class="form-control" required>
-                                <option value="">-- Select an Instructor --</option>
-                                {% for instructor in instructors %}
-                                    <option value="{{ instructor.user_id }}">{{ instructor.employee_name }} ({{ instructor.user_id }})</option>
-                                {% endfor %}
-                            </select>
                         </div>
                         <div class="form-group">
                             <label for="description">ToDo Description</label>
@@ -163,6 +135,7 @@
                     </form>
                 </div>
             </div>
+            <!-- Assignee Selection Modal -->
             <div class="modal fade" id="assigneeModal" tabindex="-1" role="dialog" aria-labelledby="assigneeModalLabel" aria-hidden="true">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
@@ -199,11 +172,6 @@
                     </div>
                 </div>
             </div>
-
-                        <button type="submit" class="btn btn-primary">Assign</button>
-                    </form>
-                </div>
-            </div>
         {% elif is_instructor %}
             <div class="card mb-4">
                 <div class="card-body">
@@ -215,17 +183,6 @@
                             <label>Selected Assignees</label>
                             <div id="selected-assignees" class="form-control" style="min-height: 38px; background-color: #f8f9fa;">None selected</div>
                             <button type="button" class="btn btn-info mt-2" data-toggle="modal" data-target="#assigneeModal">Select Assignees</button>
-
-                    <form method="POST" action="/todo">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                        <div class="form-group">
-                            <label for="student">Select Student</label>
-                            <select name="student" id="student" class="form-control" required>
-                                <option value="">-- Select a Student --</option>
-                                {% for student in students %}
-                                    <option value="{{ student.name }}">{{ student.full_name }} ({{ student.name }})</option>
-                                {% endfor %}
-                            </select>
                         </div>
                         <div class="form-group">
                             <label for="description">ToDo Description</label>
@@ -420,22 +377,6 @@
                         <a class="dropdown-item" href="/todo?show_personal_todos=1{% if search %}&search={{ search }}{% endif %}{% if sort_order %}&sort_order={{ sort_order }}{% endif %}">Personal ToDos</a>
                     </div>
                 </div>
-
-                        <button type="submit" class="btn btn-primary">Assign</button>
-                    </form>
-                </div>
-            </div>
-        {% endif %}
-        <h2 class="mb-3">{{ "Assigned ToDos" if is_principal or is_hod or is_instructor else "My ToDos" }}</h2>
-        <div class="mb-3 d-flex align-items-center flex-wrap">
-            {% if is_hod %}
-                <a href="/todo?show_principal_todos={{ '1' if not show_principal_todos else '0' }}{% if search %}&search={{ search }}{% endif %}{% if sort_order %}&sort_order={{ sort_order }}{% endif %}" class="btn btn-secondary mr-2 mb-2">
-                    {{ "View ToDos from Principal" if not show_principal_todos else "View Assigned ToDos" }}
-                </a>
-            {% elif is_instructor %}
-                <a href="/todo?show_hod_todos={{ '1' if not show_hod_todos else '0' }}{% if search %}&search={{ search }}{% endif %}{% if sort_order %}&sort_order={{ sort_order }}{% endif %}" class="btn btn-secondary mr-2 mb-2">
-                    {{ "View ToDos from HOD" if not show_hod_todos else "View Assigned ToDos" }}
-                </a>
             {% endif %}
             <div class="mr-2 mb-2" style="max-width: 300px;">
                 <input type="text" id="search-input" class="form-control" placeholder="Search descriptions..." value="{{ search if search else '' }}">
@@ -450,8 +391,6 @@
                 </select>
             </div>
             {% if is_principal or (is_hod and not show_principal_todos) or (is_instructor and not show_hod_todos) or (is_student and show_personal_todos) %}
-
-            {% if is_principal or (is_hod and not show_principal_todos) or (is_instructor and not show_hod_todos) %}
                 <div class="mr-2 mb-2">
                     <select id="bulk-action" class="form-control">
                         <option value="">Bulk Actions</option>
@@ -469,8 +408,6 @@
                 <thead class="thead-dark">
                     <tr>
                         {% if is_principal or (is_hod and not show_principal_todos) or (is_instructor and not show_hod_todos) or (is_student and show_personal_todos) %}
-
-                        {% if is_principal or (is_hod and not show_principal_todos) or (is_instructor and not show_hod_todos) %}
                             <th><input type="checkbox" id="select-all"></th>
                         {% endif %}
                         <th><a href="#" class="sort-link" data-field="owner">Assigned To</a></th>
@@ -482,8 +419,6 @@
                         <th><a href="#" class="sort-link" data-field="date">Due Date</a></th>
                         <th><a href="#" class="sort-link" data-field="priority">Priority</a></th>
                         {% if is_principal or (is_hod and not show_principal_todos) or (is_instructor and not show_hod_todos) or (is_student and show_personal_todos) %}
-
-                        {% if is_principal or (is_hod and not show_principal_todos) or (is_instructor and not show_hod_todos) %}
                             <th>Actions</th>
                         {% endif %}
                     </tr>
@@ -519,8 +454,6 @@
                                 <div class="form-group">
                                     <label>Value</label>
                                     <input type="text" class="form-check-input filter-value" placeholder="Enter value">
-
-                                    <input type="text" class="form-control filter-value" placeholder="Enter value">
                                 </div>
                             </div>
                         </div>
@@ -579,9 +512,7 @@
     const csrfToken = "{{ csrf_token }}";
     const showPrincipalTodos = {{ "true" if show_principal_todos else "false" }};
     const showHodTodos = {{ "true" if show_hod_todos else "false" }};
-
     const showPersonalTodos = {{ "true" if show_personal_todos else "false" }};
-
     const hods = {{ hods | tojson | safe if is_principal else "[]" }};
     const instructors = {{ instructors | tojson | safe if is_hod else "[]" }};
     const students = {{ students | tojson | safe if is_instructor else "[]" }};
@@ -612,7 +543,7 @@
             }, 5000);
         }
 
-
+        // Handle assignee selection modal for Principal, HOD, Instructor
         const assigneeModal = document.getElementById("assigneeModal");
         if (assigneeModal) {
             const selectAllCheckbox = document.getElementById("select-all-assignees");
@@ -697,6 +628,7 @@
             });
         }
 
+        // Handle student assignee selection modal
         const studentAssigneeModal = document.getElementById("studentAssigneeModal");
         if (studentAssigneeModal) {
             const studentCheckbox = document.querySelector(".student-assignee-checkbox");
@@ -718,7 +650,6 @@
                 }
             });
         }
-
 
         updateTodos();
 
@@ -840,16 +771,13 @@
                 },
                 callback: function(r) {
                     if (r.message) {
-
                         console.log("Bulk action successful:", r.message);
-
                         let displayMessage = "";
                         if (apiAction === "delete") {
                             displayMessage = "ToDos deleted successfully!";
                         } else if (apiAction === "update_status") {
                             displayMessage = `ToDos status changed to ${value} successfully!`;
                         }
-
 
                         selectedTodos = [];
                         document.getElementById("select-all").checked = false;
@@ -859,11 +787,6 @@
                         const params = new URLSearchParams(window.location.search);
                         params.set("message", displayMessage);
                         params.set("message_type", "success");
-                        // Construct the URL with query parameters to preserve current state
-                        const params = new URLSearchParams(window.location.search);
-                        params.set("message", displayMessage);
-                        params.set("message_type", "success");
-                        // Preserve existing query parameters (e.g., search, sort_order)
                         if (searchTerm) params.set("search", searchTerm);
                         if (sortOrder) params.set("sort_order", sortOrder);
                         if (showPrincipalTodos) params.set("show_principal_todos", "1");
@@ -873,13 +796,10 @@
                     } else {
                         console.error("No message returned from bulk_update_todos");
                         alert("Bulk action failed. Check console for details.");
-
-                        window.location.href = `/todo?${params.toString()}`;
                     }
                 },
                 error: function(err) {
                     console.error("Bulk Action Error:", err);
-
                     const params = new URLSearchParams(window.location.search);
                     params.set("message", "Failed to perform bulk action: " + (err.message || "Unknown error"));
                     params.set("message_type", "danger");
@@ -888,7 +808,6 @@
                     if (showPrincipalTodos) params.set("show_principal_todos", "1");
                     if (showHodTodos) params.set("show_hod_todos", "1");
                     if (showPersonalTodos) params.set("show_personal_todos", "1");
-
                     window.location.href = `/todo?${params.toString()}`;
                 }
             });
@@ -918,11 +837,8 @@
                 sort_order: sortOrder,
                 filters: JSON.stringify(filters),
                 show_principal_todos: showPrincipalTodos ? "1" : "0",
-
                 show_hod_todos: showHodTodos ? "1" : "0",
                 show_personal_todos: showPersonalTodos ? "1" : "0"
-
-                show_hod_todos: showHodTodos ? "1" : "0"
             },
             callback: function(r) {
                 if (!r.message) {
@@ -938,20 +854,26 @@
 
                 if (data.data && data.data.length > 0) {
                     data.data.forEach(todo => {
+                        // Determine if this ToDo is "new" (assigned to me, not by me, not seen)
+                        const isAssignedToMe = todo.owner === "{{ frappe.session.user }}";
+                        const isNotByMe = todo.assigned_by !== "{{ frappe.session.user }}";
+                        const seenTodos = JSON.parse(localStorage.getItem("seenTodos") || "[]");
+                        const isNew = isAssignedToMe && isNotByMe && !seenTodos.includes(todo.name);
+
                         let row = `<tr>`;
                         if (isPrincipal || (isHod && !showPrincipalTodos) || (isInstructor && !showHodTodos) || (isStudent && showPersonalTodos)) {
                             row += `<td><input type="checkbox" class="todo-checkbox" value="${todo.name}" ${selectedTodos.includes(todo.name) ? 'checked' : ''}></td>`;
                         }
                         row += `
-
-                        let row = `<tr>
-                            ${isPrincipal || (isHod && !showPrincipalTodos) || (isInstructor && !showHodTodos) ? 
-                                `<td><input type="checkbox" class="todo-checkbox" value="${todo.name}" ${selectedTodos.includes(todo.name) ? 'checked' : ''}></td>` : ""}
                             <td>${todo.assigned_to_name}</td>
                             <td>${todo.assigned_by_name}</td>
-                            <td>${todo.description.length > 50 ? 
-                                `<a href="#" data-toggle="modal" data-target="#descModal${todo.name}">${todo.description.substring(0, 50)}…more</a>` : 
-                                todo.description}</td>
+                            <td>
+                                ${todo.description.length > 50 ? 
+                                    `<a href="#" data-toggle="modal" data-target="#descModal${todo.name}" class="todo-link" data-todo="${todo.name}">${todo.description.substring(0, 50)}…more</a>` : 
+                                    `<span class="todo-link" data-todo="${todo.name}">${todo.description}</span>`}
+                                    ${isNew ? '<span class="badge badge-pill badge-danger mr-2">New</span>' : ''}
+ 
+                            </td>
                             <td>${todo.status}</td>
                             <td>`;
                         if (todo.owner === "{{ frappe.session.user }}") {
@@ -988,17 +910,11 @@
                         }
                         row += `</td>
                             <td>${todo.creation}</td>
-
                             <td>${todo.due_date || "Not Set"}</td>
                             <td>${todo.priority || "Medium"}</td>`;
                         if (isPrincipal || (isHod && !showPrincipalTodos) || (isInstructor && !showHodTodos) || (isStudent && showPersonalTodos)) {
                             row += `
                                 <td>
-
-                            <td>${todo.due_date || "Not Set"}</td>` +
-                            `${isPrincipal || (isHod && !showPrincipalTodos) || (isInstructor && !showHodTodos) ? 
-                                `<td>
-
                                     <div class="dropdown">
                                         <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenu${todo.name}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                             Actions
@@ -1016,8 +932,6 @@
                                 </td>`;
                         }
                         row += `</tr>`;
-                                </td>` : ""}
-                        </tr>`;
                         tbody.insertAdjacentHTML("beforeend", row);
 
                         if (todo.description.length > 50) {
@@ -1047,13 +961,11 @@
                                 `<option value="${hod.user_id}" ${hod.user_id === todo.owner ? 'selected' : ''}>${hod.employee_name} (${hod.user_id}) - ${hod.department}</option>`
                             ).join('');
                             options = `<option value="{{ frappe.session.user }}" ${"{{ frappe.session.user }}" === todo.owner ? 'selected' : ''}>Myself ({{ frappe.session.user }})</option>` + options;
-
                         } else if (isHod) {
                             options = instructors.map(instr => 
                                 `<option value="${instr.user_id}" ${instr.user_id === todo.owner ? 'selected' : ''}>${instr.employee_name} (${instr.user_id})</option>`
                             ).join('');
                             options = `<option value="{{ frappe.session.user }}" ${"{{ frappe.session.user }}" === todo.owner ? 'selected' : ''}>Myself ({{ frappe.session.user }})</option>` + options;
-
                         } else if (isInstructor) {
                             options = students.map(stu => 
                                 `<option value="${stu.name}" ${stu.name === todo.owner ? 'selected' : ''}>${stu.full_name} (${stu.name})</option>`
@@ -1122,58 +1034,20 @@
                                 </div>`;
                             document.body.insertAdjacentHTML("beforeend", editModal);
                         }
+                    });
 
-                        }
-
-                        let editModal = `
-                            <div class="modal fade" id="editModal${todo.name}" tabindex="-1" role="dialog" aria-labelledby="editModalLabel${todo.name}" aria-hidden="true">
-                                <div class="modal-dialog" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="editModalLabel${todo.name}">Edit ToDo</h5>
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true">×</span>
-                                            </button>
-                                        </div>
-                                        <form method="POST" action="/todo">
-                                            <div class="modal-body">
-                                                <input type="hidden" name="csrf_token" value="${csrfToken}">
-                                                <input type="hidden" name="todo_name" value="${todo.name}">
-                                                <input type="hidden" name="edit" value="1">
-                                                <input type="hidden" name="original_assignee" value="${todo.owner}">
-                                                <div class="form-group">
-                                                    <label for="edit_assignee_${todo.name}">Assigned To</label>
-                                                    <select name="assignee" id="edit_assignee_${todo.name}" class="form-control" required>
-                                                        <option value="">-- Select an Assignee --</option>
-                                                        ${options}
-                                                    </select>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="edit_description_${todo.name}">Description</label>
-                                                    <textarea name="description" id="edit_description_${todo.name}" class="form-control" rows="4" required>${todo.description}</textarea>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="edit_status_${todo.name}">Status</label>
-                                                    <select name="status" id="edit_status_${todo.name}" class="form-control">
-                                                        <option value="Open" ${todo.status === "Open" ? "selected" : ""}>Open</option>
-                                                        <option value="Closed" ${todo.status === "Closed" ? "selected" : ""}>Closed</option>
-                                                        <option value="Cancelled" ${todo.status === "Cancelled" ? "selected" : ""}>Cancelled</option>
-                                                    </select>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="edit_due_date_${todo.name}">Due Date (Optional)</label>
-                                                    <input type="date" name="due_date" id="edit_due_date_${todo.name}" class="form-control" value="${todo.due_date}">
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                                <button type="submit" class="btn btn-primary">Save Changes</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>`;
-                        document.body.insertAdjacentHTML("beforeend", editModal);
+                    // Add click handlers for badge removal
+                    document.querySelectorAll(".todo-link").forEach(link => {
+                        link.addEventListener("click", function() {
+                            const todoName = this.getAttribute("data-todo");
+                            let seenTodos = JSON.parse(localStorage.getItem("seenTodos") || "[]");
+                            if (!seenTodos.includes(todoName)) {
+                                seenTodos.push(todoName);
+                                localStorage.setItem("seenTodos", JSON.stringify(seenTodos));
+                                const badge = this.parentElement.querySelector(".badge");
+                                if (badge) badge.remove();
+                            }
+                        });
                     });
 
                     document.getElementById("load-more").style.display = data.has_more ? "block" : "none";
@@ -1200,9 +1074,6 @@
                     });
                 } else {
                     document.getElementById("todo-count").textContent = `No ToDos ${isPrincipal || isHod || isInstructor || (isStudent && showPersonalTodos) ? "assigned" : "assigned to you"} yet${searchTerm ? ` matching "${searchTerm}"` : ""}.`;
-
-                    document.getElementById("todo-count").textContent = `No ToDos ${isPrincipal || isHod || isInstructor ? "assigned" : "assigned to you"} yet${searchTerm ? ` matching "${searchTerm}"` : ""}.`;
-
                     document.getElementById("load-more").style.display = "none";
                 }
             },

@@ -242,3 +242,6 @@ app_license = "mit"
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+permission_query_conditions = {
+    "ToDo": "mentor_mentee.todo_permission_query.todo_permission_query"
+}
