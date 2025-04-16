@@ -868,10 +868,11 @@
                             <td>${todo.assigned_to_name}</td>
                             <td>${todo.assigned_by_name}</td>
                             <td>
-                                ${isNew ? '<span class="badge badge-pill badge-danger mr-2">New</span>' : ''}
                                 ${todo.description.length > 50 ? 
                                     `<a href="#" data-toggle="modal" data-target="#descModal${todo.name}" class="todo-link" data-todo="${todo.name}">${todo.description.substring(0, 50)}…more</a>` : 
                                     `<span class="todo-link" data-todo="${todo.name}">${todo.description}</span>`}
+                                    ${isNew ? '<span class="badge badge-pill badge-danger mr-2">New</span>' : ''}
+ 
                             </td>
                             <td>${todo.status}</td>
                             <td>`;

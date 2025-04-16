@@ -6,6 +6,11 @@
 <div class="container mt-4">
     <h2 class="text-center">Mentor Mentee System</h2>
 
+    <!-- Add Theme Switcher Button -->
+    <div class="text-end mb-3">
+        <button id="theme-switcher-btn" class="btn btn-secondary">Switch Theme</button>
+    </div>
+
     <input type="text" id="searchInput" class="form-control form-control-lg p-6 mt-3 w-75 mx-auto"
            placeholder="Search by name..."
            value="{{ search_query | default('') }}">
@@ -62,44 +67,154 @@
     </div>
 </div>
 <style>
-    .instructor-item, .student-item {
-        cursor: pointer;
-        position: relative;
-    }
-    .selected {
-        background-color: #e6f3ff;
-        transition: background-color 0.3s ease;
-    }
-    .instructor-item:hover, .student-item:hover {
-        background-color: #f0f0f0;
-    }
+    .instructor-item, .student-item { cursor: pointer; position: relative; }
+    .selected { background-color: #e6f3ff; transition: background-color 0.3s ease; }
+    .instructor-item:hover, .student-item:hover { background-color: #f0f0f0; }
     .custom-tooltip {
-        display: none;
-        position: absolute;
-        background-color: rgba(0, 0, 0, 0.5);
-        color: #fff;
-        border: 1px solid #ccc;
-        padding: 10px;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        z-index: 1000;
-        width: 200px;
-        top: -100%;
-        left: 50%;
-        transform: translateX(-50%);
-        text-align: center;
+        display: none; position: absolute; background: rgba(0,0,0,0.5); color: #fff;
+        border: 1px solid #ccc; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        z-index: 1000; width: 200px; top: -100%; left: 50%; transform: translateX(-50%); text-align: center;
     }
-    .student-item:hover .custom-tooltip {
-        display: block;
-    }
-    .custom-tooltip img {
-        width: 100px;
-        height: 100px;
-        border-radius:50%;
-        margin-bottom: 5px;
-    }
+    .student-item:hover .custom-tooltip { display: block; }
+    .custom-tooltip img { width: 100px; height: 100px; border-radius: 50%; margin-bottom: 5px; }
+    /* Simplified theme switcher styles */
+    .theme-options { display: flex; justify-content: center; gap: 20px; padding: 10px; }
+    .theme-option { cursor: pointer; text-align: center; padding: 5px; border: 1px solid #ddd; border-radius: 5px; }
+    .theme-option.selected { border-color: #2a54f5; }
+    .theme-option [data-theme] { height: 50px; width: 50px; margin: 0 auto; }
+    .theme-option .label { margin-top: 5px; font-size: 14px; }
+    [data-theme="light"] { background: #f8f9fa; }
+    [data-theme="dark"] { background: #222; }
+    [data-theme="automatic"] { background: linear-gradient(to right, #f8f9fa 50%, #222 50%); }
+    /* Full page and base template dark mode styling */
+    [data-theme-mode="dark"] html, [data-theme-mode="dark"] body { background: #2a2e39; color: #fff; }
+    [data-theme-mode="dark"] .container { background: #2a2e39; }
+    [data-theme-mode="dark"] h2, [data-theme-mode="dark"] h4 { color: #fff !important; }
+    [data-theme-mode="dark"] .list-group-item { background: #363c49; color: #fff; border-color: #444; }
+    [data-theme-mode="dark"] .selected { background-color: #1e252f; }
+    [data-theme-mode="dark"] .instructor-item:hover, [data-theme-mode="dark"] .student-item:hover { background: #2d3441; }
+    [data-theme-mode="dark"] .card { background: #363c49; border-color: #444; }
+    [data-theme-mode="dark"] .card-header.bg-info { background: #2a54f5 !important; color: #fff; }
+    [data-theme-mode="dark"] .card-body { color: #ccc; }
+    [data-theme-mode="dark"] .text-muted { color: #999 !important; }
+    [data-theme-mode="dark"] .btn-secondary { background: #4a5b75; border-color: #4a5b75; color: #fff; }
+    [data-theme-mode="dark"] .btn-primary { background: #2a54f5; border-color: #2a54f5; }
+    [data-theme-mode="dark"] .form-control { background: #2d3441; border-color: #444; color: #fff; }
+    [data-theme-mode="dark"] .form-control::placeholder { color: #999; }
+    [data-theme-mode="dark"] .custom-tooltip { background: rgba(50,50,50,0.8); }
+    [data-theme-mode="dark"] .navbar { background: #2a2e39; color: #ccc; }
+    [data-theme-mode="dark"] .navbar a { color: #fff; }
+    [data-theme-mode="dark"] .web-footer { background: #2a2e39; color: #ccc; }
 </style>
 <script>
+// Manually define frappe.ui if not present
+if (typeof frappe === "undefined") { window.frappe = {}; }
+if (typeof frappe.ui === "undefined") { frappe.ui = {}; }
+
+// ThemeSwitcher with simplified appearance
+frappe.ui.ThemeSwitcher = class ThemeSwitcher {
+    constructor() {
+        this.setup_dialog();
+        this.refresh();
+    }
+
+    setup_dialog() {
+        if (typeof frappe.ui.Dialog === "undefined") {
+            console.error("frappe.ui.Dialog is not available.");
+            return;
+        }
+        this.dialog = new frappe.ui.Dialog({ title: __("Switch Theme"), width: 400 });
+        this.body = $(`<div class="theme-options"></div>`).appendTo(this.dialog.$body);
+        this.bind_events();
+    }
+
+    bind_events() {
+        if (!this.themes) return;
+        this.dialog.$wrapper.on("keydown", (e) => {
+            const key = (frappe.ui.keys && frappe.ui.keys.get_key) ? frappe.ui.keys.get_key(e) : e.key;
+            let increment_by = (key === "right" || key === "ArrowRight") ? 1 : (key === "left" || key === "ArrowLeft") ? -1 : 0;
+            if (increment_by || e.keyCode === 13) {
+                const current = this.themes.findIndex(t => t.name === this.current_theme);
+                const new_theme = this.themes[current + increment_by];
+                if (new_theme) new_theme.$html.click();
+                if (e.keyCode === 13) this.hide();
+                return false;
+            }
+        });
+    }
+
+    refresh() {
+        this.current_theme = document.documentElement.getAttribute("data-theme-mode") || "light";
+        this.fetch_themes().then(() => this.render());
+    }
+
+    fetch_themes() {
+        return new Promise(resolve => {
+            this.themes = [
+                { name: "light", label: __("Frappe Light"), info: __("Light Theme") },
+                { name: "dark", label: __("Timeless Night"), info: __("Dark Theme") },
+                { name: "automatic", label: __("Automatic"), info: __("Uses system's theme") },
+            ];
+            resolve(this.themes);
+        });
+    }
+
+    render() {
+        if (!this.body) return;
+        this.themes.forEach(theme => {
+            const html = this.get_preview_html(theme);
+            html.appendTo(this.body);
+            theme.$html = html;
+        });
+    }
+
+    get_preview_html(theme) {
+        const is_auto = theme.name === "automatic";
+        const preview = $(`<div class="theme-option ${this.current_theme === theme.name ? "selected" : ""}">
+            <div data-theme="${is_auto ? "automatic" : theme.name}" title="${theme.info}">
+                <div class="theme-box"></div>
+            </div>
+            <div class="label">${theme.label}</div>
+        </div>`);
+
+        preview.on("click", () => {
+            if (this.current_theme === theme.name) return;
+            this.themes.forEach(t => t.$html.removeClass("selected"));
+            preview.addClass("selected");
+            this.toggle_theme(theme.name);
+        });
+        return preview;
+    }
+
+    toggle_theme(theme) {
+        this.current_theme = theme.toLowerCase();
+        document.documentElement.setAttribute("data-theme-mode", this.current_theme);
+        if (frappe.show_alert) frappe.show_alert(__("Theme Changed"), 3);
+        else console.log("Theme Changed to:", this.current_theme);
+        if (frappe.xcall) frappe.xcall("frappe.core.doctype.user.user.switch_theme", { theme: toTitle(theme) })
+            .catch(() => console.warn("Theme persistence failed."));
+    }
+
+    show() { if (this.dialog) this.dialog.show(); else console.error("Dialog not initialized."); }
+    hide() { if (this.dialog) this.dialog.hide(); }
+};
+
+// Automatic theme listener
+frappe.ui = frappe.ui || {};
+frappe.ui.add_system_theme_switch_listener = () => {
+    frappe.ui.dark_theme_media_query = frappe.ui.dark_theme_media_query || window.matchMedia("(prefers-color-scheme: dark)");
+    frappe.ui.dark_theme_media_query.addEventListener("change", () => frappe.ui.set_theme());
+};
+
+frappe.ui.set_theme = (theme) => {
+    const root = document.documentElement;
+    let mode = root.getAttribute("data-theme-mode");
+    if (!theme && mode === "automatic") theme = (frappe.ui.dark_theme_media_query || window.matchMedia("(prefers-color-scheme: dark)")).matches ? "dark" : "light";
+    root.setAttribute("data-theme", theme || mode);
+};
+
+const themeSwitcher = new frappe.ui.ThemeSwitcher();
+
 document.addEventListener("DOMContentLoaded", function () {
     let start = 0;
     let pageLength = 10; 
@@ -117,12 +232,15 @@ document.addEventListener("DOMContentLoaded", function () {
     let pageLengthButtons = document.querySelectorAll(".page-length-btn");
     let selectedItem = null;
 
+    const themeSwitcherBtn = document.getElementById("theme-switcher-btn");
+    if (themeSwitcherBtn) {
+        themeSwitcherBtn.addEventListener("click", () => new frappe.ui.ThemeSwitcher().show());
+    }
+
     function attachEventListeners() {
         document.querySelectorAll(".instructor-item").forEach(item => {
             item.addEventListener("click", function () {
-                if (selectedItem) {
-                    selectedItem.classList.remove("selected");
-                }
+                if (selectedItem) selectedItem.classList.remove("selected");
                 this.classList.add("selected");
                 selectedItem = this;
 
@@ -150,9 +268,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         document.querySelectorAll(".student-item").forEach(item => {
             item.addEventListener("click", function () {
-                if (selectedItem) {
-                    selectedItem.classList.remove("selected");
-                }
+                if (selectedItem) selectedItem.classList.remove("selected");
                 this.classList.add("selected");
                 selectedItem = this;
 
@@ -185,11 +301,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function updatePage(searchQuery, startOffset, append = false, itemsPerPage = pageLength) {
         frappe.call({
             method: "mentor_mentee.www.mentor_mentee.search_mentor_mentee",
-            args: {
-                search_query: searchQuery,
-                start: startOffset,
-                items_per_page: itemsPerPage
-            },
+            args: { search_query: searchQuery, start: startOffset, items_per_page: itemsPerPage },
             callback: function(response) {
                 let data = response.message;
 
@@ -199,18 +311,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     recordsLoaded = 0; 
                 }
 
-                data.instructors.forEach(function(instructor) {
+                data.instructors.forEach(instructor => {
                     let li = document.createElement("li");
                     li.classList.add("list-group-item", "instructor-item");
                     li.dataset.instructor = instructor.name;
                     li.textContent = instructor.name;
-                    if (instructor.instructor_email) {
-                        li.innerHTML += `<br><small class="text-muted">${instructor.instructor_email}</small>`;
-                    }
+                    if (instructor.instructor_email) li.innerHTML += `<br><small class="text-muted">${instructor.instructor_email}</small>`;
                     instructorsList.appendChild(li);
                 });
 
-                data.students.forEach(function(student) {
+                data.students.forEach(student => {
                     let li = document.createElement("li");
                     li.classList.add("list-group-item", "student-item");
                     li.dataset.student = student.name;
@@ -233,17 +343,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 pageLength = data.items_per_page;
                 recordsLoaded += Math.max(data.instructors.length, data.students.length);
 
-                if (!append) {
-                    detailsList.innerHTML = "<p>Select an instructor or student to view details.</p>";
-                }
+                if (!append) detailsList.innerHTML = "<p>Select an instructor or student to view details.</p>";
 
                 console.log("Records Loaded:", recordsLoaded, "Total Records:", totalRecords, "Start:", start, "Page Length:", pageLength, "Has More:", data.has_more);
 
-                if (searchQuery === "" && totalRecords > 0) {
-                    paginationSection.style.display = "block";
-                } else if (searchQuery !== "") {
-                    paginationSection.style.display = "none";
-                }
+                if (searchQuery === "" && totalRecords > 0) paginationSection.style.display = "block";
+                else if (searchQuery !== "") paginationSection.style.display = "none";
 
                 loadMoreBtn.disabled = !data.has_more;
                 loadMoreBtn.style.display = data.has_more ? "inline-block" : "inline-block";
@@ -265,7 +370,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     loadMoreBtn.addEventListener("click", function() {
         if (!this.disabled) {
-            start += pageLength; // Increment start by page length
+            start += pageLength;
             updatePage(currentSearchQuery, start, true, pageLength);
         }
     });
@@ -274,7 +379,7 @@ document.addEventListener("DOMContentLoaded", function () {
     searchInput.addEventListener("input", function() {
         let searchValue = this.value.trim().toLowerCase();
         clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(function() {
+        searchTimeout = setTimeout(() => {
             start = 0;
             updatePage(searchValue, start, false, pageLength);
         }, 500);
@@ -282,19 +387,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     searchInput.addEventListener("change", function() {
         if (this.value.trim() === "") {
-            start = 0; // Reset start on clear
+            start = 0;
             updatePage("", start, false, pageLength);
         }
     });
 
     pageLengthButtons.forEach(button => {
-        if (parseInt(button.dataset.length) === 10) {
-            button.classList.add("active");
-        }
+        if (parseInt(button.dataset.length) === 10) button.classList.add("active");
     });
 
     attachEventListeners();
 });
 </script>
 {% endblock %}
-</DOCUMENT>
+
