@@ -6,11 +6,6 @@
 <div class="container mt-4">
     <h2 class="text-center">Mentor Mentee System</h2>
 
-    <!-- Add Theme Switcher Button -->
-    <div class="text-end mb-3">
-        <button id="theme-switcher-btn" class="btn btn-secondary">Switch Theme</button>
-    </div>
-
     <input type="text" id="searchInput" class="form-control form-control-lg p-6 mt-3 w-75 mx-auto"
            placeholder="Search by name..."
            value="{{ search_query | default('') }}">
@@ -230,9 +225,19 @@ document.addEventListener("DOMContentLoaded", function () {
     let pageLengthButtons = document.querySelectorAll(".page-length-btn");
     let selectedItem = null;
 
-    const themeSwitcherBtn = document.getElementById("theme-switcher-btn");
-    if (themeSwitcherBtn) {
-        themeSwitcherBtn.addEventListener("click", () => new frappe.ui.ThemeSwitcher().show());
+    // Dynamically add Switch Theme button to dropdown menu if user is logged in
+    if (frappe.session.user !== "Guest") {
+        const dropdownMenu = document.querySelector(".dropdown-menu");
+        if (dropdownMenu) {
+            const themeItem = document.createElement("li");
+            const themeButton = document.createElement("button");
+            themeButton.id = "theme-switcher-btn";
+            themeButton.className = "dropdown-item";
+            themeButton.textContent = "Switch Theme";
+            themeButton.addEventListener("click", () => new frappe.ui.ThemeSwitcher().show());
+            themeItem.appendChild(themeButton);
+            dropdownMenu.appendChild(themeItem);
+        }
     }
 
     function attachEventListeners() {
