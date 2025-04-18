@@ -191,8 +191,6 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
         document.documentElement.setAttribute("data-theme-mode", this.current_theme);
         if (frappe.show_alert) frappe.show_alert(__("Theme Changed"), 3);
         else console.log("Theme Changed to:", this.current_theme);
-        if (frappe.xcall) frappe.xcall("frappe.core.doctype.user.user.switch_theme", { theme: toTitle(theme) })
-            .catch(() => console.warn("Theme persistence failed."));
     }
 
     show() { if (this.dialog) this.dialog.show(); else console.error("Dialog not initialized."); }
@@ -400,4 +398,3 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 {% endblock %}
-

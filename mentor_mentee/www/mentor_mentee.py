@@ -93,7 +93,7 @@ def get_context(context):
         "title": "Mentor Mentee System"
     })
 
-@frappe.whitelist(allow_guest=False)
+@frappe.whitelist(allow_guest=True)
 def search_mentor_mentee(search_query, start=0, items_per_page=10):
     start = int(start)
     items_per_page = int(items_per_page)

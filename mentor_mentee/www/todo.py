@@ -48,31 +48,31 @@ def get_context(context):
         instructor = frappe.get_value("Instructor", {"employee": context.employee_id}, "name")
         if not instructor:
             frappe.throw("No Instructor record linked to this Employee.")
+        context.students = []
         student_group = frappe.get_all(
             "Student Group",
             filters={"instructor": instructor},
             fields=["name"]
         )
-        if not student_group:
-            frappe.throw("No Student Group assigned to this Instructor.")
-        student_group_name = student_group[0].name
-        student_ids = frappe.get_all(
-            "Student Group Student",
-            filters={"parent": student_group_name},
-            fields=["student"],
-            pluck="student"
-        )
-        student_emails = frappe.get_all(
-            "Student",
-            filters={"name": ["in", student_ids]},
-            fields=["student_email_id"]
-        )
-        student_emails = [student["student_email_id"] for student in student_emails if student["student_email_id"]]
-        context.students = frappe.get_all(
-            "User",
-            filters={"name": ["in", student_emails], "enabled": 1},
-            fields=["name", "full_name"]
-        )
+        if student_group:
+            student_group_name = student_group[0].name
+            student_ids = frappe.get_all(
+                "Student Group Student",
+                filters={"parent": student_group_name},
+                fields=["student"],
+                pluck="student"
+            )
+            student_emails = frappe.get_all(
+                "Student",
+                filters={"name": ["in", student_ids]},
+                fields=["student_email_id"]
+            )
+            student_emails = [student["student_email_id"] for student in student_emails if student["student_email_id"]]
+            context.students = frappe.get_all(
+                "User",
+                filters={"name": ["in", student_emails], "enabled": 1},
+                fields=["name", "full_name"]
+            )
         context.csrf_token = frappe.sessions.get_csrf_token()
     elif context.is_student:
         context.csrf_token = frappe.sessions.get_csrf_token()
@@ -246,7 +246,7 @@ def get_context(context):
                         assignee_employee = frappe.get_value("Employee", {"user_id": assignee}, ["name", "employee_name", "user_id"])
                         if not assignee_employee:
                             frappe.throw(f"No Employee record found for {assignee}")
-                        assignee_user = assignee_employee[2]
+                        assignee_user = assignee  # Use the form's assignee directly
                         assignee_name = assignee_employee[1]
                         valid_instructor_ids = [instr.user_id for instr in context.instructors]
                         if assignee not in valid_instructor_ids:
@@ -273,6 +273,7 @@ def get_context(context):
                         todo.date = due_date
                     todo.priority = priority
                     todo.insert(ignore_permissions=True)
+                    frappe.log_error(f"Created ToDo: name={todo.name}, owner={todo.owner}, assigned_by={todo.assigned_by}", "ToDo Creation Debug")
                     frappe.db.commit()
                     saved_todo = frappe.get_doc("ToDo", todo.name)
                     if saved_todo.owner != assignee_user or (due_date and saved_todo.date != due_date):
@@ -342,7 +343,7 @@ def get_todo_list(start=0, page_length=10, search="", sort_field="creation", sor
             filters["owner"] = frappe.session.user
             filters["assigned_by"] = ["in", hod_users]
         else:
-            filters["assigned_by"] = frappe.session.user
+            filters["owner"] = frappe.session.user
     elif is_student:
         if show_personal_todos == "1":
             filters["assigned_by"] = frappe.session.user
@@ -361,7 +362,8 @@ def get_todo_list(start=0, page_length=10, search="", sort_field="creation", sor
         fields=["name", "owner", "description", "status", "creation", "assigned_by", "date", "custom_response", "modified", "priority"],
         order_by=f"{sort_field} {sort_order}",
         start=start,
-        page_length=page_length + 1
+        page_length=page_length + 1,
+        ignore_permissions=True  # Bypass permission checks
     )
     total_count = frappe.db.count("ToDo", filters)
 
