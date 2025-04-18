@@ -49,3 +49,14 @@ bench --site mentor-mentee.localhost install-app mentor-mentee
 bench build
 bench start
 ```
+#### Backup data
+[Backup file](https://drive.google.com/file/d/1frKW2eoFHhj2MbBBkXAkh-qeltZhVMkJ/view?usp=sharing)
+- Unzip backup.zip to access the backup/ folder
+- Copy the mentor_mentee app (If need otherwise github already have)
+- After install app and create site.
+
+**Restore the data**
+  
+ ```bash
+ bench --site mentor-mentee.localhost restore /path/to/backup/20250419_012250-mentor-mentee_localhost-database.sql.gz
+```
