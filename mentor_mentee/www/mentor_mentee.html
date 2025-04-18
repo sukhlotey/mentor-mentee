@@ -6,6 +6,18 @@
 <div class="container mt-4">
     <h2 class="text-center">Mentor Mentee System</h2>
 
+    <div class="text-end mb-3">
+        <div class="btn-group">
+            <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="studentFilterDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                All Students
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="studentFilterDropdown">
+                <li><button class="dropdown-item" data-filter="all">All Students</button></li>
+                <li><button class="dropdown-item" data-filter="unassigned">Unassigned Students</button></li>
+            </ul>
+        </div>
+    </div>
+
     <input type="text" id="searchInput" class="form-control form-control-lg p-6 mt-3 w-75 mx-auto"
            placeholder="Search by name..."
            value="{{ search_query | default('') }}">
@@ -139,8 +151,9 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
     }
 
     refresh() {
-        this.current_theme = document.documentElement.getAttribute("data-theme-mode") || "light";
+        this.current_theme = localStorage.getItem('themeMode') || document.documentElement.getAttribute("data-theme-mode") || "light";
         this.fetch_themes().then(() => this.render());
+        document.documentElement.setAttribute("data-theme-mode", this.current_theme);
     }
 
     fetch_themes() {
@@ -184,6 +197,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
     toggle_theme(theme) {
         this.current_theme = theme.toLowerCase();
         document.documentElement.setAttribute("data-theme-mode", this.current_theme);
+        localStorage.setItem('themeMode', this.current_theme); // Save theme to localStorage
         if (frappe.show_alert) frappe.show_alert(__("Theme Changed"), 3);
         else console.log("Theme Changed to:", this.current_theme);
     }
@@ -201,7 +215,7 @@ frappe.ui.add_system_theme_switch_listener = () => {
 
 frappe.ui.set_theme = (theme) => {
     const root = document.documentElement;
-    let mode = root.getAttribute("data-theme-mode");
+    let mode = localStorage.getItem('themeMode') || root.getAttribute("data-theme-mode");
     if (!theme && mode === "automatic") theme = (frappe.ui.dark_theme_media_query || window.matchMedia("(prefers-color-scheme: dark)")).matches ? "dark" : "light";
     root.setAttribute("data-theme", theme || mode);
 };
@@ -239,6 +253,36 @@ document.addEventListener("DOMContentLoaded", function () {
             dropdownMenu.appendChild(themeItem);
         }
     }
+
+    // Handle student filter dropdown
+    const studentFilterDropdown = document.getElementById("studentFilterDropdown");
+    const filterButtons = document.querySelectorAll(".dropdown-item[data-filter]");
+    let currentFilter = "all";
+
+    // Initialize Bootstrap 4 Dropdown
+    let dropdown;
+    if (typeof $ !== "undefined" && $.fn.dropdown) {
+        dropdown = $(studentFilterDropdown).data('dropdown');
+        if (!dropdown) {
+            $(studentFilterDropdown).dropdown();
+            dropdown = $(studentFilterDropdown).data('dropdown');
+        }
+    } else {
+        console.error("Bootstrap 4 Dropdown or jQuery is not available. Ensure Bootstrap JS and jQuery are loaded.");
+    }
+
+    filterButtons.forEach(button => {
+        button.addEventListener("click", function (e) {
+            e.preventDefault();
+            currentFilter = this.getAttribute("data-filter");
+            studentFilterDropdown.textContent = this.textContent;
+            studentFilterDropdown.classList.remove("active");
+            updatePage(currentSearchQuery, start, false, pageLength);
+            if (dropdown) {
+                $(studentFilterDropdown).dropdown('toggle'); // Toggle to close in Bootstrap 4
+            }
+        });
+    });
 
     function attachEventListeners() {
         document.querySelectorAll(".instructor-item").forEach(item => {
@@ -323,7 +367,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     instructorsList.appendChild(li);
                 });
 
-                data.students.forEach(student => {
+                // Filter students based on current filter
+                let filteredStudents = data.students;
+                if (currentFilter === "unassigned") {
+                    filteredStudents = data.students.filter(student => {
+                        return !studentInstructors[student.name] || studentInstructors[student.name].length === 0;
+                    });
+                }
+
+                filteredStudents.forEach(student => {
                     let li = document.createElement("li");
                     li.classList.add("list-group-item", "student-item");
                     li.dataset.student = student.name;
@@ -344,7 +396,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 currentSearchQuery = data.search_query;
                 totalRecords = data.total_records; 
                 pageLength = data.items_per_page;
-                recordsLoaded += Math.max(data.instructors.length, data.students.length);
+                recordsLoaded += Math.max(data.instructors.length, filteredStudents.length);
 
                 if (!append) detailsList.innerHTML = "<p>Select an instructor or student to view details.</p>";
 
