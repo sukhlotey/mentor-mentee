@@ -1,0 +1,68 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "ToDo",
+  "enabled": 0,
+  "modified": "2025-03-09 00:46:36.878991",
+  "module": null,
+  "name": "ToDo allocated to",
+  "script": "frappe.ui.form.on(\"ToDo\", {\n    refresh: function (frm) {\n        // Allow selecting a User (System User)\n        frm.fields_dict.allocated_to.get_query = function () {\n            return {\n                filters: [[\"User\", \"enabled\", \"=\", 1]] // Shows only active system users\n            };\n        };\n\n        // Allow selecting an Instructor\n        frm.fields_dict.instructor.get_query = function () {\n            return {\n                filters: [[\"Instructor\", \"enabled\", \"=\", 1]] // Shows only active instructors\n            };\n        };\n    },\n    \n    before_save: function (frm) {\n        // Ensure either Instructor or System User is selected\n        if (!frm.doc.allocated_to && !frm.doc.instructor) {\n            frappe.msgprint(__(\"Please select either an Instructor or a System User.\"));\n            frappe.validated = false;  // Prevent saving if both fields are empty\n        }\n\n        // Ensure the instructor field is saved properly\n        if (frm.doc.instructor) {\n            frm.set_value(\"instructor\", frm.doc.instructor);\n        }\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "ToDo",
+  "enabled": 0,
+  "modified": "2025-03-08 23:49:53.589235",
+  "module": null,
+  "name": "Todo database",
+  "script": "frappe.ui.form.on(\"ToDo\", {\n    before_save: function(frm) {\n        if (!frm.doc.instructor) {\n            frappe.msgprint(__(\"Please select an Instructor.\"));\n            frappe.validated = false;\n        }\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Note",
+  "enabled": 0,
+  "modified": "2025-03-31 15:03:49.607335",
+  "module": null,
+  "name": "Note visibility",
+  "script": "frappe.listview_settings['Note'] = {\n    onload: function(listview) {\n        frappe.call({\n            method: \"frappe.client.get_value\",\n            args: {\n                doctype: \"User\",\n                fieldname: \"role_profile_name\",\n                filters: { name: frappe.session.user }\n            },\n            callback: function(response) {\n                let role = response.message.role_profile_name;\n\n                if (role === \"Student\") {\n                    listview.filter_area.add(\"Note\", \"visibility\", \"in\", [\"Student\"]);\n                } else if (role === \"Instructor\") {\n                    listview.filter_area.add(\"Note\", \"visibility\", \"in\", [\"Instructor\", \"Student\"]);\n                } else if (role === \"HOD\") {\n                    listview.filter_area.add(\"Note\", \"visibility\", \"in\", [\"HOD\", \"Instructor\", \"Student\"]);\n                } else if (role === \"Principal\") {\n                    // Principal can see all notes, so no filter applied\n                }\n            }\n        });\n    }\n};\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Note",
+  "enabled": 0,
+  "modified": "2025-03-31 15:03:56.145272",
+  "module": null,
+  "name": "note_popup_notification",
+  "script": "frappe.realtime.on(\"new_note\", (data) => {\n    showPopupNotification(data.title, data.content);\n});\n\nfunction showPopupNotification(title, content) {\n\n    let popup = new frappe.ui.Dialog({\n        title: \"New Note Created\",\n        fields: [{ fieldtype: \"HTML\", options: `<b>${title}</b><br>${content}` }],\n        size: \"small\",\n    });\n\n    popup.show();\n\n    let active = false;\n\n    function resetActivity() {\n        active = true;\n    }\n\n    [\"mousemove\", \"keypress\", \"scroll\"].forEach((event) => {\n        document.addEventListener(event, resetActivity);\n    });\n\n    setTimeout(() => {\n        if (!active) {\n            popup.show();\n        }\n    }, 10000);\n}\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Note",
+  "enabled": 1,
+  "modified": "2025-03-31 15:55:28.406930",
+  "module": null,
+  "name": "Notification inactive active",
+  "script": "frappe.realtime.on(\"new_note\", (data) => {\n    showPopupNotification(data.title, data.content);\n});\n\nfunction showPopupNotification(title, content) {\n    let popup = new frappe.ui.Dialog({\n        title: \"New Note Created\",\n        fields: [{ fieldtype: \"HTML\", options: `<b>${title}</b><br>${content}` }],\n        size: \"small\",\n    });\n\n    popup.show();\n\n    let inactiveTime = 0;\n\n    function resetActivity() {\n        inactiveTime = 0;\n    }\n\n    function checkInactivity() {\n        inactiveTime += 10;\n        if (inactiveTime >= 30) {\n            popup.show(); // Re-show popup if user inactive for 30s\n        }\n    }\n\n    [\"mousemove\", \"keypress\", \"scroll\", \"click\"].forEach((event) => {\n        document.addEventListener(event, resetActivity);\n    });\n\n    let interval = setInterval(checkInactivity, 10000);\n\n    popup.$wrapper.on(\"hidden.bs.modal\", function () {\n        clearInterval(interval);\n    });\n}\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "ToDo",
+  "enabled": 1,
+  "modified": "2025-04-01 00:53:37.833738",
+  "module": null,
+  "name": "Todo visibility",
+  "script": "frappe.listview_settings['ToDo'] = {\n    onload: function(listview) {\n        listview.filter_area.add('owner', '=', frappe.session.user);\n        listview.refresh();\n    }\n};\n",
+  "view": "Form"
+ }
+]

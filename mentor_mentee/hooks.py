@@ -245,3 +245,8 @@ app_license = "mit"
 permission_query_conditions = {
     "ToDo": "mentor_mentee.todo_permission_query.todo_permission_query"
 }
+
+fixtures = [ 
+    "Server Script",
+    "Client Script"
+]
