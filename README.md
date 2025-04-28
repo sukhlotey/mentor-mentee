@@ -64,6 +64,7 @@ bench start
  bench --site mentor-mentee.localhost restore /path/to/backup/20250419_012250-mentor-mentee_localhost-database.sql.gz
 ```
 
+---
 
 In case you have same name app or site then you ought to delete them in this way:
 
